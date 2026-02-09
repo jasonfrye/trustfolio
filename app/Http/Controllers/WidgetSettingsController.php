@@ -69,22 +69,38 @@ class WidgetSettingsController extends Controller
             'show_branding' => ['nullable', 'boolean'],
         ]);
 
-        // Sanitize border radius - clamp to valid range (0-16)
-        $borderRadius = isset($validated['border_radius'])
-            ? max(0, min(16, (int) round((float) $validated['border_radius'])))
-            : 8;
-
-        // Sanitize colors - expand short hex to full hex
-        $primaryColor = $this->expandShortHex($validated['primary_color'] ?? '#4f46e5');
-        $backgroundColor = $this->expandShortHex($validated['background_color'] ?? '#ffffff');
-        $textColor = $this->expandShortHex($validated['text_color'] ?? '#1f2937');
-
-        // Sanitize theme - default to light if invalid (shouldn't happen due to validation)
-        $theme = in_array($validated['theme'], ['light', 'dark', 'custom'])
-            ? $validated['theme']
-            : 'light';
-
         $settings = WidgetSetting::where('creator_id', $creator->id)->firstOrFail();
+        $hasPremium = $creator->hasPremiumSubscription();
+
+        // Restrict custom branding to Pro+ plans
+        if (! $hasPremium) {
+            // Free users must use light theme and show branding
+            $theme = 'light';
+            $showBranding = true;
+
+            // Use default theme colors
+            $themeDefaults = WidgetSetting::getThemeDefaults('light');
+            $primaryColor = $themeDefaults['primary_color'];
+            $backgroundColor = $themeDefaults['background_color'];
+            $textColor = $themeDefaults['text_color'];
+            $borderRadius = 8;
+        } else {
+            // Pro+ users can customize
+            $theme = in_array($validated['theme'], ['light', 'dark', 'custom'])
+                ? $validated['theme']
+                : 'light';
+
+            $primaryColor = $this->expandShortHex($validated['primary_color'] ?? '#4f46e5');
+            $backgroundColor = $this->expandShortHex($validated['background_color'] ?? '#ffffff');
+            $textColor = $this->expandShortHex($validated['text_color'] ?? '#1f2937');
+
+            $borderRadius = isset($validated['border_radius'])
+                ? max(0, min(16, (int) round((float) $validated['border_radius'])))
+                : 8;
+
+            $showBranding = $request->boolean('show_branding');
+        }
+
         $settings->update([
             'theme' => $theme,
             'primary_color' => $primaryColor,
@@ -98,7 +114,7 @@ class WidgetSettingsController extends Controller
             'show_dates' => $request->boolean('show_dates'),
             'minimum_rating' => $validated['minimum_rating'],
             'sort_order' => $validated['sort_order'],
-            'show_branding' => $request->boolean('show_branding'),
+            'show_branding' => $showBranding,
         ]);
 
         return redirect()->route('widget.settings')->with('success', 'Widget settings updated successfully!');

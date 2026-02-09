@@ -15,6 +15,9 @@
             </div>
         </div>
 
+        <!-- Review Limit Alert (free plan users approaching limit) -->
+        <x-review-limit-alert :creator="$creator" />
+
         <!-- Collection URL Banner -->
         <div class="card-elevated p-5 mb-8 flex flex-col sm:flex-row sm:items-center gap-4 bg-gradient-to-r from-brand-50 to-white">
             <div class="flex-1 min-w-0">

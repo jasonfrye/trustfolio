@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ConversionEvent;
 use App\Models\Creator;
 use App\Models\Review;
 use App\Services\StripeService;
@@ -157,12 +158,25 @@ class SubscriptionController extends Controller
         $priceId = $subscription->items->data[0]->price->id ?? null;
         $plan = $this->mapPriceToPlan($priceId);
 
+        // Track conversion if upgrading from free
+        $wasFreePlan = $creator->plan === 'free' || $creator->plan === null;
+
         // Update creator subscription info
         $creator->stripe_subscription_id = $subscriptionId;
         $creator->plan = $plan;
         $creator->subscription_status = $subscription->status;
         $creator->subscription_ends_at = now()->addSeconds($subscription->current_period_end - time());
         $creator->save();
+
+        // Track conversion event for analytics
+        if ($wasFreePlan && $plan === 'pro') {
+            ConversionEvent::track(
+                $creator->id,
+                ConversionEvent::EVENT_CONVERSION,
+                'stripe_checkout',
+                ['plan' => $plan, 'subscription_id' => $subscriptionId]
+            );
+        }
 
         Log::info("Subscription activated for creator: {$creator->id}, plan: {$plan}");
     }

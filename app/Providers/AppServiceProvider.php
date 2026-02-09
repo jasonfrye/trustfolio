@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Review;
+use App\Observers\ReviewObserver;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
@@ -22,5 +23,8 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Route::model('testimonial', Review::class);
+
+        // Register observers
+        Review::observe(ReviewObserver::class);
     }
 }

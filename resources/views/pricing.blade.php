@@ -193,16 +193,16 @@
                             <p class="text-emerald-100 text-xs text-center mt-4">No credit card required • Cancel anytime</p>
                         </div>
 
-                        <!-- Business Plan -->
+                        <!-- Teams Plan -->
                         <div class="p-8 bg-white rounded-2xl border-2 border-gray-200 hover:border-gray-300 transition-all hover:shadow-lg">
-                            <h3 class="text-2xl font-bold text-gray-900 mb-2">Business</h3>
+                            <h3 class="text-2xl font-bold text-gray-900 mb-2">Teams</h3>
                             <p class="text-gray-600 mb-6">For teams and agencies</p>
                             <div class="mb-6">
-                                <span x-show="!annual" class="text-5xl font-bold text-gray-900">$29</span>
-                                <span x-show="annual" x-cloak class="text-5xl font-bold text-gray-900">$23</span>
+                                <span x-show="!annual" class="text-5xl font-bold text-gray-900">$24</span>
+                                <span x-show="annual" x-cloak class="text-5xl font-bold text-gray-900">$20</span>
                                 <span class="text-gray-600 text-lg" x-text="annual ? '/month' : '/month'"></span>
                             </div>
-                            <p class="text-gray-600 text-sm mb-6" x-show="annual" x-cloak>Billed annually at $276/year</p>
+                            <p class="text-gray-600 text-sm mb-6" x-show="annual" x-cloak>Billed annually at $240/year</p>
                             <p class="text-gray-600 text-sm mb-6" x-show="!annual">Billed monthly</p>
 
                             <ul class="space-y-4 mb-8">
