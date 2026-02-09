@@ -3,124 +3,371 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leave a Testimonial for {{ $creator->display_name }}</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Share Your Experience - {{ $creator->display_name }}</title>
+
+    <!-- Google Fonts - Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Alpine.js CDN -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <style>
+        [x-cloak] { display: none !important; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .star-icon {
+            transition: all 0.2s ease;
+        }
+
+        .star-icon:hover {
+            transform: scale(1.1);
+        }
+
+        .star-icon.filled {
+            color: #fbbf24;
+        }
+
+        .star-icon.empty {
+            color: #d1d5db;
+        }
+
+        .premium-card {
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .focus-ring:focus {
+            outline: none;
+            ring-offset-2: 2px;
+            ring-width: 2px;
+            ring-color: #10b981;
+        }
+    </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
-    <div class="max-w-2xl mx-auto py-12 px-4">
-        <!-- Header -->
-        <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-gray-900">Leave a Testimonial</h1>
-            <p class="mt-2 text-gray-600">Share your experience working with {{ $creator->display_name }}</p>
-            @if($creator->website)
-                <a href="{{ $creator->website }}" target="_blank" class="text-indigo-600 hover:text-indigo-800 text-sm mt-1 inline-block">
-                    {{ parse_url($creator->website, PHP_URL_HOST) }} ↗
-                </a>
-            @endif
-        </div>
+<body class="bg-gradient-to-br from-gray-50 to-white min-h-screen flex flex-col">
+    <div class="flex-1 flex items-center justify-center px-4 py-8 sm:py-12">
+        <div class="w-full max-w-2xl">
+            <div x-data="reviewFlow()" x-cloak class="premium-card bg-white rounded-2xl p-6 sm:p-10">
 
-        <!-- Success Message -->
-        @if(session('success'))
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-6">
-                {{ session('success') }}
-            </div>
-        @endif
+                <!-- Step 1: Rating -->
+                <div x-show="step === 'rating'" x-transition.opacity.duration.300ms>
+                    <div class="text-center">
+                        <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 mb-8">
+                            How was your experience with {{ $creator->display_name }}?
+                        </h1>
 
-        <!-- Testimonial Form -->
-        <div class="bg-white shadow-lg rounded-lg p-6 mb-8">
-            <form action="{{ route('collection.submit', $creator->collection_url) }}" method="POST">
-                @csrf
-
-                <div class="space-y-4">
-                    <!-- Author Name -->
-                    <div>
-                        <label for="author_name" class="block text-sm font-medium text-gray-700">Your Name *</label>
-                        <input type="text" name="author_name" id="author_name" required
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2"
-                            value="{{ old('author_name') }}">
- @error('author_name')
-                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Author Email -->
-                    <div>
-                        <label for="author_email" class="block text-sm font-medium text-gray-700">Email (optional)</label>
-                        <input type="email" name="author_email" id="author_email"
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2"
-                            value="{{ old('author_email') }}">
-                        @error('author_email')
-                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Author Title -->
-                    <div>
-                        <label for="author_title" class="block text-sm font-medium text-gray-700">Title/Company (optional)</label>
-                        <input type="text" name="author_title" id="author_title" placeholder="e.g., CEO at Company"
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2"
-                            value="{{ old('author_title') }}">
-                        @error('author_title')
-                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Rating -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Rating</label>
-                        <div class="flex gap-2" id="rating">
-                            @for($i = 1; $i <= 5; $i++)
-                                <button type="button" class="text-2xl text-gray-300 hover:text-yellow-400 focus:outline-none rating-btn"
-                                    data-rating="{{ $i }}"
-                                    onclick="selectRating({{ $i }})">
+                        <div class="flex justify-center gap-2 sm:gap-4 mb-4">
+                            <template x-for="star in 5" :key="star">
+                                <button
+                                    @click="selectRating(star)"
+                                    @mouseenter="hoverRating = star"
+                                    @mouseleave="hoverRating = 0"
+                                    class="star-icon text-5xl sm:text-6xl cursor-pointer focus:outline-none"
+                                    :class="(hoverRating >= star || rating >= star) ? 'filled' : 'empty'"
+                                    type="button"
+                                >
                                     ★
                                 </button>
-                            @endfor
+                            </template>
                         </div>
-                        <input type="hidden" name="rating" id="rating_value" value="{{ old('rating', 5) }}">
-                        @error('rating')
-                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
 
-                    <!-- Content -->
-                    <div>
-                        <label for="content" class="block text-sm font-medium text-gray-700">Your Testimonial *</label>
-                        <textarea name="content" id="content" rows="5" required minlength="10" maxlength="2000"
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border p-2"
-                            placeholder="Share your experience...">{{ old('content') }}</textarea>
-                        @error('content')
-                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                        @enderror
+                        <p class="text-slate-500 text-sm">Tap a star to rate</p>
                     </div>
-
-                    <!-- Submit -->
-                    <button type="submit" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 transition duration-200">
-                        Submit Testimonial
-                    </button>
                 </div>
-            </form>
-        </div>
 
-        <!-- Footer -->
-        <div class="text-center text-sm text-gray-500">
-            Powered by <a href="#" class="text-indigo-600 hover:text-indigo-800">TrustFolio</a>
+                <!-- Step 2a: Happy Path (High Rating) -->
+                <div x-show="step === 'happy'" x-transition.opacity.duration.300ms>
+                    <div class="mb-6 text-center">
+                        <div class="flex justify-center gap-1 mb-3">
+                            <template x-for="star in 5" :key="star">
+                                <span
+                                    class="text-3xl"
+                                    :class="star <= rating ? 'text-yellow-400' : 'text-gray-300'"
+                                >
+                                    ★
+                                </span>
+                            </template>
+                        </div>
+                        <p class="text-slate-700 text-lg">{!! nl2br(e($reviewPromptText)) !!}</p>
+                    </div>
+
+                    <form @submit.prevent="submitReview" class="space-y-4">
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-slate-700 mb-1">
+                                Your Name <span class="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                id="name"
+                                x-model="form.name"
+                                required
+                                class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-20 transition-colors"
+                                placeholder="John Doe"
+                            >
+                        </div>
+
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-slate-700 mb-1">
+                                Email (optional)
+                            </label>
+                            <input
+                                type="email"
+                                id="email"
+                                x-model="form.email"
+                                class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-20 transition-colors"
+                                placeholder="john@example.com"
+                            >
+                        </div>
+
+                        <div>
+                            <label for="title" class="block text-sm font-medium text-slate-700 mb-1">
+                                Review Title (optional)
+                            </label>
+                            <input
+                                type="text"
+                                id="title"
+                                x-model="form.title"
+                                class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-20 transition-colors"
+                                placeholder="Great experience!"
+                            >
+                        </div>
+
+                        <div>
+                            <label for="content" class="block text-sm font-medium text-slate-700 mb-1">
+                                Your Review <span class="text-red-500">*</span>
+                            </label>
+                            <textarea
+                                id="content"
+                                x-model="form.content"
+                                required
+                                rows="5"
+                                class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-20 transition-colors resize-none"
+                                placeholder="Tell us about your experience..."
+                            ></textarea>
+                            <p class="text-xs text-slate-500 mt-1">Minimum 10 characters</p>
+                        </div>
+
+                        <div x-show="errorMessage" class="text-red-600 text-sm text-center">
+                            <span x-text="errorMessage"></span>
+                        </div>
+
+                        <button
+                            type="submit"
+                            :disabled="submitting"
+                            class="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white font-semibold py-4 rounded-xl transition-colors shadow-lg shadow-emerald-600/20"
+                        >
+                            <span x-show="!submitting">Submit Review</span>
+                            <span x-show="submitting">Submitting...</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Step 2b: Unhappy Path (Low Rating) -->
+                <div x-show="step === 'unhappy'" x-transition.opacity.duration.300ms>
+                    <div class="mb-6 text-center">
+                        <div class="flex justify-center gap-1 mb-3">
+                            <template x-for="star in 5" :key="star">
+                                <span
+                                    class="text-3xl"
+                                    :class="star <= rating ? 'text-yellow-400' : 'text-gray-300'"
+                                >
+                                    ★
+                                </span>
+                            </template>
+                        </div>
+                        <p class="text-slate-700 text-lg">{!! nl2br(e($privateFeedbackText)) !!}</p>
+                    </div>
+
+                    <form @submit.prevent="submitReview" class="space-y-4">
+                        <div>
+                            <label for="name-unhappy" class="block text-sm font-medium text-slate-700 mb-1">
+                                Your Name (optional)
+                            </label>
+                            <input
+                                type="text"
+                                id="name-unhappy"
+                                x-model="form.name"
+                                class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-20 transition-colors"
+                                placeholder="John Doe"
+                            >
+                        </div>
+
+                        <div>
+                            <label for="email-unhappy" class="block text-sm font-medium text-slate-700 mb-1">
+                                Email (optional)
+                            </label>
+                            <input
+                                type="email"
+                                id="email-unhappy"
+                                x-model="form.email"
+                                class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-20 transition-colors"
+                                placeholder="john@example.com"
+                            >
+                        </div>
+
+                        <div>
+                            <label for="feedback" class="block text-sm font-medium text-slate-700 mb-1">
+                                Your Feedback <span class="text-red-500">*</span>
+                            </label>
+                            <textarea
+                                id="feedback"
+                                x-model="form.content"
+                                required
+                                rows="5"
+                                class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:ring-opacity-20 transition-colors resize-none"
+                                placeholder="Please tell us what went wrong..."
+                            ></textarea>
+                            <p class="text-xs text-slate-500 mt-1">Minimum 10 characters</p>
+                        </div>
+
+                        <div x-show="errorMessage" class="text-red-600 text-sm text-center">
+                            <span x-text="errorMessage"></span>
+                        </div>
+
+                        <button
+                            type="submit"
+                            :disabled="submitting"
+                            class="w-full bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white font-semibold py-4 rounded-xl transition-colors shadow-lg shadow-emerald-600/20"
+                        >
+                            <span x-show="!submitting">Submit Feedback</span>
+                            <span x-show="submitting">Submitting...</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Done: Happy Path -->
+                <div x-show="step === 'done' && isHappy" x-transition.opacity.duration.300ms>
+                    <div class="text-center">
+                        <div class="mb-6">
+                            <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-100 mb-4">
+                                <svg class="w-10 h-10 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            </div>
+                            <h2 class="text-3xl font-bold text-slate-900 mb-2">Thank You!</h2>
+                            <p class="text-slate-600">Your review has been submitted successfully.</p>
+                        </div>
+
+                        @if($googleReviewUrl)
+                        <div class="mb-4">
+                            <a
+                                href="{{ $googleReviewUrl }}"
+                                target="_blank"
+                                class="inline-block w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-4 px-6 rounded-xl transition-colors shadow-lg shadow-emerald-600/20"
+                            >
+                                Review us on Google
+                            </a>
+                        </div>
+                        @endif
+
+                        @if(count($platforms) > 0)
+                        <div class="space-y-3">
+                            @foreach($platforms as $platform)
+                            <a
+                                href="{{ $platform['url'] }}"
+                                target="_blank"
+                                class="block w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-3 px-6 rounded-xl transition-colors"
+                            >
+                                Review us on {{ $platform['name'] }}
+                            </a>
+                            @endforeach
+                        </div>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Done: Unhappy Path -->
+                <div x-show="step === 'done' && !isHappy" x-transition.opacity.duration.300ms>
+                    <div class="text-center">
+                        <div class="mb-6">
+                            <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-100 mb-4">
+                                <svg class="w-10 h-10 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            </div>
+                            <h2 class="text-3xl font-bold text-slate-900 mb-2">Thank You</h2>
+                            <p class="text-slate-600">We appreciate your feedback and will use it to improve our service.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </div>
 
-    <script>
-        function selectRating(rating) {
-            document.getElementById('rating_value').value = rating;
-            document.querySelectorAll('.rating-btn').forEach((btn, index) => {
-                btn.classList.toggle('text-yellow-400', index < rating);
-                btn.classList.toggle('text-gray-300', index >= rating);
-            });
-        }
+    <!-- Footer -->
+    <footer class="py-6 text-center">
+        <p class="text-sm text-slate-400">Powered by ReviewBridge</p>
+    </footer>
 
-        // Initialize rating on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            selectRating({{ old('rating', 5) }});
-        });
+    <script>
+        function reviewFlow() {
+            const params = new URLSearchParams(window.location.search);
+            const prefillEnabled = @json($prefillEnabled);
+            return {
+                step: 'rating',
+                rating: 0,
+                hoverRating: 0,
+                isHappy: false,
+                submitting: false,
+                errorMessage: '',
+                form: {
+                    name: prefillEnabled ? (params.get('name') || '') : '',
+                    email: prefillEnabled ? (params.get('email') || '') : '',
+                    title: '',
+                    content: '',
+                },
+                selectRating(star) {
+                    this.rating = star;
+                    const threshold = @json($threshold);
+                    this.isHappy = star >= threshold;
+                    this.step = this.isHappy ? 'happy' : 'unhappy';
+                },
+                async submitReview() {
+                    if (this.form.content.length < 10) {
+                        this.errorMessage = 'Please enter at least 10 characters.';
+                        return;
+                    }
+                    this.errorMessage = '';
+                    this.submitting = true;
+                    try {
+                        const response = await fetch("{{ route('collection.submit', $creator->collection_url) }}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                            },
+                            body: JSON.stringify({
+                                rating: this.rating,
+                                name: this.form.name || null,
+                                email: this.form.email || null,
+                                title: this.form.title || null,
+                                content: this.form.content,
+                            }),
+                        });
+                        if (!response.ok) {
+                            const data = await response.json();
+                            this.errorMessage = data.message || 'Something went wrong. Please try again.';
+                            return;
+                        }
+                        this.step = 'done';
+                    } catch (e) {
+                        this.errorMessage = 'Something went wrong. Please try again.';
+                    } finally {
+                        this.submitting = false;
+                    }
+                },
+            };
+        }
     </script>
 </body>
 </html>

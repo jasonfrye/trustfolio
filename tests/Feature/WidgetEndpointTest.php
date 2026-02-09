@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Creator;
-use App\Models\Testimonial;
+use App\Models\Review;
 use App\Models\User;
 use App\Models\WidgetSetting;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -14,9 +14,12 @@ class WidgetEndpointTest extends TestCase
     use RefreshDatabase;
 
     private Creator $creator;
-    private Testimonial $approvedTestimonial;
-    private Testimonial $pendingTestimonial;
-    private Testimonial $rejectedTestimonial;
+
+    private Review $approvedTestimonial;
+
+    private Review $pendingTestimonial;
+
+    private Review $rejectedTestimonial;
 
     protected function setUp(): void
     {
@@ -54,7 +57,7 @@ class WidgetEndpointTest extends TestCase
         ]);
 
         // Create testimonials with different statuses
-        $this->approvedTestimonial = Testimonial::create([
+        $this->approvedTestimonial = Review::create([
             'creator_id' => $this->creator->id,
             'author_name' => 'Approved User',
             'author_email' => 'approved@example.com',
@@ -64,7 +67,7 @@ class WidgetEndpointTest extends TestCase
             'approved_at' => now(),
         ]);
 
-        $this->pendingTestimonial = Testimonial::create([
+        $this->pendingTestimonial = Review::create([
             'creator_id' => $this->creator->id,
             'author_name' => 'Pending User',
             'author_email' => 'pending@example.com',
@@ -73,7 +76,7 @@ class WidgetEndpointTest extends TestCase
             'status' => 'pending',
         ]);
 
-        $this->rejectedTestimonial = Testimonial::create([
+        $this->rejectedTestimonial = Review::create([
             'creator_id' => $this->creator->id,
             'author_name' => 'Rejected User',
             'author_email' => 'rejected@example.com',
@@ -183,7 +186,7 @@ class WidgetEndpointTest extends TestCase
         ]);
 
         // Add another approved testimonial
-        $extraTestimonial = Testimonial::create([
+        $extraTestimonial = Review::create([
             'creator_id' => $this->creator->id,
             'author_name' => 'Extra Approved User',
             'author_email' => 'extra@example.com',
@@ -254,7 +257,7 @@ class WidgetEndpointTest extends TestCase
         $content = $response->getContent();
 
         // Should contain trustfolio branding
-        $this->assertStringContainsString('trustfolio', strtolower($content));
+        $this->assertStringContainsString('reviewbridge', strtolower($content));
     }
 
     /**
@@ -270,7 +273,7 @@ class WidgetEndpointTest extends TestCase
         $content = $response->getContent();
 
         // Should show empty message
-        $this->assertStringContainsString('No testimonials yet', $content);
+        $this->assertStringContainsString('No reviews yet', $content);
     }
 
     /**
@@ -279,7 +282,7 @@ class WidgetEndpointTest extends TestCase
     public function test_multiple_approved_testimonials_appear(): void
     {
         // Add another approved testimonial
-        $extraTestimonial = Testimonial::create([
+        $extraTestimonial = Review::create([
             'creator_id' => $this->creator->id,
             'author_name' => 'Second Approved',
             'author_email' => 'second@example.com',

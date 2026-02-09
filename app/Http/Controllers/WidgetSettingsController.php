@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Creator;
 use App\Models\WidgetSetting;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class WidgetSettingsController extends Controller
 {
@@ -35,7 +34,15 @@ class WidgetSettingsController extends Controller
 
         $embedCode = $this->generateEmbedCode($creator);
 
-        return view('widget-settings', compact('creator', 'settings', 'embedCode'));
+        // Get real approved reviews for preview
+        $previewReviews = $creator->reviews()
+            ->where('status', 'approved')
+            ->where('is_private_feedback', false)
+            ->latest()
+            ->limit(3)
+            ->get();
+
+        return view('widget-settings', compact('creator', 'settings', 'embedCode', 'previewReviews'));
     }
 
     /**
@@ -63,7 +70,7 @@ class WidgetSettingsController extends Controller
         ]);
 
         // Sanitize border radius - clamp to valid range (0-16)
-        $borderRadius = isset($validated['border_radius']) 
+        $borderRadius = isset($validated['border_radius'])
             ? max(0, min(16, (int) round((float) $validated['border_radius'])))
             : 8;
 
@@ -73,8 +80,8 @@ class WidgetSettingsController extends Controller
         $textColor = $this->expandShortHex($validated['text_color'] ?? '#1f2937');
 
         // Sanitize theme - default to light if invalid (shouldn't happen due to validation)
-        $theme = in_array($validated['theme'], ['light', 'dark', 'custom']) 
-            ? $validated['theme'] 
+        $theme = in_array($validated['theme'], ['light', 'dark', 'custom'])
+            ? $validated['theme']
             : 'light';
 
         $settings = WidgetSetting::where('creator_id', $creator->id)->firstOrFail();
@@ -111,9 +118,10 @@ class WidgetSettingsController extends Controller
         if (preg_match('/^#([0-9A-Fa-f]{3})$/', $color, $matches)) {
             $expanded = '';
             foreach (str_split($matches[1]) as $char) {
-                $expanded .= $char . $char;
+                $expanded .= $char.$char;
             }
-            return '#' . $expanded;
+
+            return '#'.$expanded;
         }
 
         // Fallback to default
@@ -126,10 +134,11 @@ class WidgetSettingsController extends Controller
     private function generateEmbedCode(Creator $creator): string
     {
         $scriptUrl = route('widget.script', ['collectionUrl' => $creator->collection_url]);
-        $fullUrl = url('/embed/' . $creator->collection_url);
+        $fullUrl = url('/embed/'.$creator->collection_url);
+
         return <<<HTML
-<!-- TrustFolio Widget -->
-<div id="trustfolio-widget" data-collection="{$creator->collection_url}"></div>
+<!-- ReviewBridge Widget -->
+<div id="reviewbridge-widget" data-collection="{$creator->collection_url}"></div>
 <script src="{$fullUrl}" defer></script>
 HTML;
     }

@@ -1,8 +1,4 @@
-@extends('layouts.app')
-
-@section('title', 'Subscription - TrustFolio')
-
-@section('content')
+<x-app-layout>
 <div class="max-w-4xl mx-auto py-12">
     <h1 class="text-3xl font-bold mb-8">Subscription Management</h1>
 
@@ -62,7 +58,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
                     @endif
-                    Up to 10 testimonials
+                    Up to 10 reviews
                 </li>
                 <li class="flex items-center">
                     @if($creator->hasPremiumSubscription())
@@ -74,7 +70,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
                     @endif
-                    Unlimited testimonials
+                    Unlimited reviews
                 </li>
                 <li class="flex items-center">
                     @if($creator->hasPremiumSubscription())
@@ -86,7 +82,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
                     @endif
-                    Remove "Powered by TrustFolio" branding
+                    Remove "Powered by ReviewBridge" branding
                 </li>
                 <li class="flex items-center">
                     @if($creator->hasPremiumSubscription())
@@ -119,10 +115,10 @@
 
         <div class="grid md:grid-cols-3 gap-6">
             <div>
-                <p class="text-sm text-gray-500 mb-1">Testimonials</p>
+                <p class="text-sm text-gray-500 mb-1">Reviews</p>
                 <p class="text-2xl font-bold">
-                    {{ $testimonialsCount }}
-                    @if(!$creator->hasUnlimitedTestimonials())
+                    {{ $reviewsCount }}
+                    @if(!$creator->hasUnlimitedReviews())
                         <span class="text-sm font-normal text-gray-500">/ 10</span>
                     @endif
                 </p>
@@ -138,4 +134,4 @@
         </div>
     </div>
 </div>
-@endsection
+</x-app-layout>

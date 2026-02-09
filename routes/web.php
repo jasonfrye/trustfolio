@@ -9,7 +9,7 @@ Route::get('/', function () {
 
 Route::get('/pricing', function () {
     return view('pricing');
-});
+})->name('pricing');
 
 Route::get('/collection/{collectionUrl}', \App\Http\Controllers\CollectionController::class)->name('collection.show');
 Route::post('/collection/{collectionUrl}/submit', [\App\Http\Controllers\CollectionController::class, 'submit'])->name('collection.submit');

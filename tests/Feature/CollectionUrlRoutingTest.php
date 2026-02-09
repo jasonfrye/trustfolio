@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Creator;
-use App\Models\Testimonial;
+use App\Models\Review;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -59,16 +59,14 @@ class CollectionUrlRoutingTest extends TestCase
     /**
      * Test: Submission form displays creator's website
      */
-    public function test_submission_form_displays_creator_website(): void
+    public function test_submission_form_displays_review_flow(): void
     {
-        $this->creator->website = 'https://example.com';
-        $this->creator->save();
-
         $response = $this->get(route('collection.show', $this->creator->collection_url));
 
         $response->assertOk();
         $content = $response->getContent();
-        $this->assertStringContainsString('https://example.com', $content);
+        // The new review flow page should contain rating-related content
+        $this->assertStringContainsString('experience', $content);
     }
 
     /**
@@ -116,10 +114,10 @@ class CollectionUrlRoutingTest extends TestCase
         $response->assertOk();
         $content = $response->getContent();
 
-        // Should contain form fields
-        $this->assertStringContainsString('author_name', $content);
-        $this->assertStringContainsString('content', $content);
-        $this->assertStringContainsString('rating', $content);
+        // Should contain form fields (Alpine.js model bindings)
+        $this->assertStringContainsString('form.name', $content);
+        $this->assertStringContainsString('form.content', $content);
+        $this->assertStringContainsString('selectRating', $content);
     }
 
     /**
@@ -173,7 +171,7 @@ class CollectionUrlRoutingTest extends TestCase
      */
     public function test_url_encoding_works_for_collection_urls(): void
     {
-        $response = $this->get('/collection/' . urlencode($this->creator->collection_url));
+        $response = $this->get('/collection/'.urlencode($this->creator->collection_url));
 
         $response->assertOk();
         $response->assertViewIs('collection.show');

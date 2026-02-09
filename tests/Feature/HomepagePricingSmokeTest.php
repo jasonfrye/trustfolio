@@ -22,15 +22,15 @@ class HomepagePricingSmokeTest extends TestCase
     /**
      * Test: Homepage contains TrustFolio branding
      */
-    public function test_homepage_contains_trustfolio_branding(): void
+    public function test_homepage_contains_reviewbridge_branding(): void
     {
         $response = $this->get('/');
         $content = $response->getContent();
 
-        // Should contain TrustFolio or trustfolio
+        // Should contain ReviewBridge branding
         $this->assertTrue(
-            stripos($content, 'TrustFolio') !== false ||
-            stripos($content, 'trustfolio') !== false
+            stripos($content, 'ReviewBridge') !== false ||
+            stripos($content, 'reviewbridge') !== false
         );
     }
 
@@ -44,8 +44,8 @@ class HomepagePricingSmokeTest extends TestCase
 
         // Should contain some marketing/hero text
         $this->assertTrue(
-            stripos($content, 'testimonial') !== false ||
-            stripos($content, 'social proof') !== false ||
+            stripos($content, 'review') !== false ||
+            stripos($content, 'reputation') !== false ||
             stripos($content, 'customer') !== false
         );
     }

@@ -12,6 +12,7 @@ class CreatorSettingsTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private Creator $creator;
 
     protected function setUp(): void
@@ -187,7 +188,7 @@ class CreatorSettingsTest extends TestCase
         $content = $response->getContent();
 
         // Should contain embed container
-        $this->assertStringContainsString('trustfolio-widget', $content);
+        $this->assertStringContainsString('reviewbridge-widget', $content);
         $this->assertStringContainsString($this->creator->collection_url, $content);
     }
 

@@ -3,9 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Creator;
-use App\Models\Testimonial;
+use App\Models\Review;
 use App\Models\WidgetSetting;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 
 class WidgetController extends Controller
@@ -33,18 +32,25 @@ class WidgetController extends Controller
             'show_branding' => true,
         ]);
 
-        $testimonials = Testimonial::where('creator_id', $creator->id)
+        $query = Review::where('creator_id', $creator->id)
             ->approved()
-            ->orderBy('created_at', 'desc')
-            ->limit($settings->limit ?? 10)
-            ->get();
+            ->where('is_private_feedback', false)
+            ->where('rating', '>=', $settings->minimum_rating ?? 1);
+
+        match ($settings->sort_order) {
+            'highest_rated' => $query->orderBy('rating', 'desc')->orderBy('created_at', 'desc'),
+            'random' => $query->inRandomOrder(),
+            default => $query->orderBy('created_at', 'desc'),
+        };
+
+        $reviews = $query->limit($settings->limit ?? 10)->get();
 
         $starFilled = '★';
         $starEmpty = '☆';
 
         // Build CSS variables based on theme
         if ($settings->theme === 'dark') {
-            $cssVars = <<<CSS
+            $cssVars = <<<'CSS'
 --tf-primary: #818cf8;
 --tf-bg: #1f2937;
 --tf-text: #f3f4f6;
@@ -57,7 +63,7 @@ CSS;
 CSS;
         } else {
             // Light theme defaults
-            $cssVars = <<<CSS
+            $cssVars = <<<'CSS'
 --tf-primary: #4f46e5;
 --tf-bg: #ffffff;
 --tf-text: #1f2937;
@@ -66,7 +72,7 @@ CSS;
 
         $js = <<<JS
 (function() {
-    const containerId = 'trustfolio-widget-' + Math.random().toString(36).substr(2, 9);
+    const containerId = 'reviewbridge-widget-' + Math.random().toString(36).substr(2, 9);
     const collectionUrl = '{$collectionUrl}';
     const starFilled = '{$starFilled}';
     const starEmpty = '{$starEmpty}';
@@ -75,9 +81,9 @@ CSS;
 
     // Inject widget styles
     function injectStyles() {
-        if (document.getElementById('trustfolio-styles')) return;
+        if (document.getElementById('reviewbridge-styles')) return;
         const style = document.createElement('style');
-        style.id = 'trustfolio-styles';
+        style.id = 'reviewbridge-styles';
         style.textContent = \`
             .trustfolio-widget {
                 font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -182,33 +188,33 @@ CSS;
     containers.forEach((container, index) => {
         injectStyles();
         container.id = containerId + '-' + index;
-        renderWidget(container, {$testimonials->toJson()}, {$settings->toJson()});
+        renderWidget(container, {$reviews->toJson()}, {$settings->toJson()});
     });
 
-    function renderWidget(container, testimonials, settings) {
+    function renderWidget(container, reviews, settings) {
         const theme = settings.theme || 'light';
         const layout = settings.layout || 'cards';
 
         let html = '<div class="trustfolio-widget trustfolio-' + theme + ' trustfolio-' + layout + '">';
 
-        if (testimonials.length === 0) {
-            html += '<p class="trustfolio-empty">No testimonials yet.</p>';
+        if (reviews.length === 0) {
+            html += '<p class="trustfolio-empty">No reviews yet.</p>';
         } else {
-            testimonials.forEach(t => {
-                html += renderTestimonial(t, settings);
+            reviews.forEach(t => {
+                html += renderReview(t, settings);
             });
         }
 
         html += '</div>';
 
         if (settings.show_branding !== false) {
-            html += '<div class="trustfolio-branding">Powered by <a href="https://trustfolio.app" target="_blank">TrustFolio</a></div>';
+            html += '<div class="trustfolio-branding">Powered by <a href="https://reviewbridge.app" target="_blank">ReviewBridge</a></div>';
         }
 
         container.innerHTML = html;
     }
 
-    function renderTestimonial(t, settings) {
+    function renderReview(t, settings) {
         const showRatings = settings.show_ratings !== false;
         const showDates = settings.show_dates !== false;
         const stars = showRatings ? starFilled.repeat(t.rating) + starEmpty.repeat(5 - t.rating) : '';

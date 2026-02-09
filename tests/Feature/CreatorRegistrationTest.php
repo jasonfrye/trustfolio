@@ -95,6 +95,6 @@ class CreatorRegistrationTest extends TestCase
 
         $this->assertEquals('light', $creator->widget_theme);
         $this->assertTrue($creator->show_branding);
-        $this->assertEquals(10, $creator->max_testimonials);
+        $this->assertEquals(10, $creator->max_reviews);
     }
 }

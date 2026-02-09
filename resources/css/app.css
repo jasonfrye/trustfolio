@@ -1,3 +1,69 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    ::selection {
+        @apply bg-brand-200 text-navy-900;
+    }
+}
+
+@layer components {
+    .btn-primary {
+        @apply inline-flex items-center justify-center px-6 py-3 bg-brand-600 text-white font-semibold rounded-xl
+               hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
+               transition-all duration-200 shadow-sm hover:shadow-md;
+    }
+
+    .btn-secondary {
+        @apply inline-flex items-center justify-center px-6 py-3 bg-navy-800 text-white font-semibold rounded-xl
+               hover:bg-navy-700 focus:outline-none focus:ring-2 focus:ring-navy-500 focus:ring-offset-2
+               transition-all duration-200 shadow-sm hover:shadow-md;
+    }
+
+    .btn-ghost {
+        @apply inline-flex items-center justify-center px-6 py-3 text-navy-700 font-medium rounded-xl
+               border border-navy-200 hover:border-navy-300 hover:bg-navy-50
+               focus:outline-none focus:ring-2 focus:ring-navy-500 focus:ring-offset-2
+               transition-all duration-200;
+    }
+
+    .card {
+        @apply bg-white rounded-2xl border border-navy-100 shadow-sm;
+    }
+
+    .card-elevated {
+        @apply bg-white rounded-2xl border border-navy-100 shadow-lg shadow-navy-900/5;
+    }
+
+    .input-field {
+        @apply w-full rounded-xl border border-navy-200 bg-white px-4 py-3 text-navy-900
+               placeholder:text-navy-400
+               focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none
+               transition-all duration-200;
+    }
+
+    .stat-card {
+        @apply card p-6 text-center transition-all duration-200 hover:shadow-md hover:border-navy-200;
+    }
+
+    .badge {
+        @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+    }
+
+    .badge-pending {
+        @apply badge bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-600/20;
+    }
+
+    .badge-approved {
+        @apply badge bg-brand-50 text-brand-700 ring-1 ring-inset ring-brand-600/20;
+    }
+
+    .badge-rejected {
+        @apply badge bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20;
+    }
+
+    .badge-private {
+        @apply badge bg-navy-50 text-navy-600 ring-1 ring-inset ring-navy-500/20;
+    }
+}

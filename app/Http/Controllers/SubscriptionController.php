@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Creator;
+use App\Models\Review;
 use App\Services\StripeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -33,7 +33,7 @@ class SubscriptionController extends Controller
             ? config('services.stripe.monthly_price_id')
             : config('services.stripe.annual_price_id');
 
-        if (!$priceId) {
+        if (! $priceId) {
             return back()->with('error', 'Pricing configuration error. Please contact support.');
         }
 
@@ -54,7 +54,7 @@ class SubscriptionController extends Controller
         $session = $this->stripeService->createSubscriptionCheckout(
             $customer->id,
             $priceId,
-            route('subscription.success') . '?session_id={CHECKOUT_SESSION_ID}',
+            route('subscription.success').'?session_id={CHECKOUT_SESSION_ID}',
             route('subscription.cancel')
         );
 
@@ -68,7 +68,7 @@ class SubscriptionController extends Controller
     {
         $sessionId = $request->session()->get('session_id') ?? $request->query('session_id');
 
-        if (!$sessionId) {
+        if (! $sessionId) {
             return redirect()->route('dashboard')
                 ->with('error', 'Invalid session.');
         }
@@ -78,7 +78,8 @@ class SubscriptionController extends Controller
             // In a real app, you'd verify the session with Stripe first
             return view('subscription.success');
         } catch (\Exception $e) {
-            Log::error('Subscription success error: ' . $e->getMessage());
+            Log::error('Subscription success error: '.$e->getMessage());
+
             return redirect()->route('dashboard')
                 ->with('error', 'There was an issue processing your subscription.');
         }
@@ -121,12 +122,13 @@ class SubscriptionController extends Controller
                     break;
 
                 default:
-                    Log::info('Unhandled Stripe event: ' . $event->type);
+                    Log::info('Unhandled Stripe event: '.$event->type);
             }
 
             return response()->json(['received' => true]);
         } catch (\Exception $e) {
-            Log::error('Stripe webhook error: ' . $e->getMessage());
+            Log::error('Stripe webhook error: '.$e->getMessage());
+
             return response()->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
         }
     }
@@ -142,8 +144,9 @@ class SubscriptionController extends Controller
         // Find creator by Stripe customer ID
         $creator = Creator::where('stripe_customer_id', $customerId)->first();
 
-        if (!$creator) {
+        if (! $creator) {
             Log::warning("Creator not found for Stripe customer: {$customerId}");
+
             return;
         }
 
@@ -172,8 +175,9 @@ class SubscriptionController extends Controller
         $subscriptionId = $subscription->id;
         $creator = Creator::where('stripe_subscription_id', $subscriptionId)->first();
 
-        if (!$creator) {
+        if (! $creator) {
             Log::warning("Creator not found for subscription: {$subscriptionId}");
+
             return;
         }
 
@@ -197,8 +201,9 @@ class SubscriptionController extends Controller
         $subscriptionId = $subscription->id;
         $creator = Creator::where('stripe_subscription_id', $subscriptionId)->first();
 
-        if (!$creator) {
+        if (! $creator) {
             Log::warning("Creator not found for subscription: {$subscriptionId}");
+
             return;
         }
 
@@ -217,7 +222,7 @@ class SubscriptionController extends Controller
      */
     protected function mapPriceToPlan(?string $priceId): string
     {
-        if (!$priceId) {
+        if (! $priceId) {
             return 'free';
         }
 
@@ -247,7 +252,7 @@ class SubscriptionController extends Controller
         $user = Auth::user();
         $creator = $user->creator;
 
-        if (!$creator->stripe_customer_id) {
+        if (! $creator->stripe_customer_id) {
             return redirect()->route('dashboard')
                 ->with('error', 'No billing account found.');
         }
@@ -260,7 +265,8 @@ class SubscriptionController extends Controller
 
             return redirect($session->url, 303);
         } catch (\Exception $e) {
-            Log::error('Billing portal error: ' . $e->getMessage());
+            Log::error('Billing portal error: '.$e->getMessage());
+
             return redirect()->route('dashboard')
                 ->with('error', 'Unable to access billing portal. Please contact support.');
         }
@@ -274,10 +280,10 @@ class SubscriptionController extends Controller
         $user = Auth::user();
         $creator = $user->creator;
 
-        $testimonialsCount = Testimonial::where('creator_id', $creator->id)->count();
-        $approvedCount = Testimonial::where('creator_id', $creator->id)->approved()->count();
-        $pendingCount = Testimonial::where('creator_id', $creator->id)->pending()->count();
+        $reviewsCount = Review::where('creator_id', $creator->id)->count();
+        $approvedCount = Review::where('creator_id', $creator->id)->approved()->count();
+        $pendingCount = Review::where('creator_id', $creator->id)->pending()->count();
 
-        return view('subscription.manage', compact('creator', 'testimonialsCount', 'approvedCount', 'pendingCount'));
+        return view('subscription.manage', compact('creator', 'reviewsCount', 'approvedCount', 'pendingCount'));
     }
 }

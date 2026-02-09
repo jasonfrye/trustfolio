@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TrustFolio Widget Test Page</title>
+    <title>ReviewBridge Widget Test Page</title>
     <style>
         * {
             box-sizing: border-box;
@@ -41,7 +41,7 @@
             justify-content: center;
             background: #fafafa;
         }
-        .widget-container:has(.trustfolio-widget) {
+        .widget-container:has(.reviewbridge-widget) {
             border-color: #4f46e5;
             background: white;
         }
@@ -90,12 +90,12 @@
     </style>
 </head>
 <body>
-    <h1>🧪 TrustFolio Widget Test Page</h1>
+    <h1>ReviewBridge Widget Test Page</h1>
 
     <div class="instructions">
         <h3>Test Instructions</h3>
         <ol>
-            <li>Register a new creator account at <a href="http://localhost:8000/register" target="_blank">localhost:8000/register</a></li>
+            <li>Register a new creator account at <a href="{{ url('/register') }}" target="_blank">{{ url('/register') }}</a></li>
             <li>Copy the embed code from the Creator Settings page</li>
             <li>Paste the embed code below and test the widget</li>
             <li>Check the browser console for errors</li>
@@ -153,10 +153,10 @@
 
         // Monitor for widget loading
         function monitorWidget() {
-            const widget = document.querySelector('.trustfolio-widget');
+            const widget = document.querySelector('.reviewbridge-widget');
             if (widget) {
                 addLog('Widget detected in DOM!', 'success');
-                addLog(`Widget has ${widget.querySelectorAll('.trustfolio-card').length} testimonial cards`, 'success');
+                addLog(`Widget has ${widget.querySelectorAll('.reviewbridge-card').length} review cards`, 'success');
             } else {
                 addLog('No widget detected yet...', 'info');
             }
@@ -177,7 +177,7 @@
             if (container) {
                 container.innerHTML = '';
                 const script = document.createElement('script');
-                script.src = `http://localhost:8000/embed/${collectionUrl}`;
+                script.src = `{{ url('/embed') }}/${collectionUrl}`;
                 script.defer = true;
                 script.onload = () => addLog('Script loaded successfully', 'success');
                 script.onerror = () => addLog('Script failed to load', 'error');

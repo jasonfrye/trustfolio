@@ -2,58 +2,58 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Testimonial;
+use App\Models\Review;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class TestimonialController extends Controller
 {
     /**
-     * Approve a testimonial.
+     * Approve a review.
      */
-    public function approve(Request $request, Testimonial $testimonial)
+    public function approve(Request $request, Review $testimonial): \Illuminate\Http\RedirectResponse
     {
-        $this->authorizeTestimonial($testimonial);
-        
+        $this->authorizeReview($testimonial);
+
         $testimonial->approve();
-        
-        return back()->with('status', 'Testimonial approved successfully.');
+
+        return back()->with('status', 'Review approved successfully.');
     }
 
     /**
-     * Reject a testimonial.
+     * Reject a review.
      */
-    public function reject(Request $request, Testimonial $testimonial)
+    public function reject(Request $request, Review $testimonial): \Illuminate\Http\RedirectResponse
     {
-        $this->authorizeTestimonial($testimonial);
-        
+        $this->authorizeReview($testimonial);
+
         $testimonial->reject();
-        
-        return back()->with('status', 'Testimonial rejected.');
+
+        return back()->with('status', 'Review rejected.');
     }
 
     /**
-     * Delete a testimonial.
+     * Delete a review.
      */
-    public function destroy(Request $request, Testimonial $testimonial)
+    public function destroy(Request $request, Review $testimonial): \Illuminate\Http\RedirectResponse
     {
-        $this->authorizeTestimonial($testimonial);
-        
+        $this->authorizeReview($testimonial);
+
         $testimonial->delete();
-        
-        return back()->with('status', 'Testimonial deleted.');
+
+        return back()->with('status', 'Review deleted.');
     }
 
     /**
-     * Ensure the authenticated user owns this testimonial's creator.
+     * Ensure the authenticated user owns this review's creator.
      */
-    private function authorizeTestimonial(Testimonial $testimonial): void
+    private function authorizeReview(Review $review): void
     {
         $user = Auth::user();
-        $creator = $testimonial->creator;
-        
-        if (!$creator || $creator->user_id !== $user->id) {
-            abort(403, 'You do not own this testimonial.');
+        $creator = $review->creator;
+
+        if (! $creator || $creator->user_id !== $user->id) {
+            abort(403, 'You do not own this review.');
         }
     }
 }

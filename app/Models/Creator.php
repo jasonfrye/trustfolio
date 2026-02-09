@@ -21,6 +21,15 @@ class Creator extends Model
         'primary_color',
         'font_family',
         'show_branding',
+        'review_threshold',
+        'google_review_url',
+        'redirect_platforms',
+        'prefill_enabled',
+        'review_prompt_text',
+        'private_feedback_text',
+    ];
+
+    protected $guarded = [
         'stripe_customer_id',
         'stripe_subscription_id',
         'plan',
@@ -33,6 +42,9 @@ class Creator extends Model
         'show_branding' => 'boolean',
         'subscription_ends_at' => 'datetime',
         'trial_ends_at' => 'datetime',
+        'review_threshold' => 'integer',
+        'redirect_platforms' => 'array',
+        'prefill_enabled' => 'boolean',
     ];
 
     /**
@@ -44,20 +56,21 @@ class Creator extends Model
     }
 
     /**
-     * Get all testimonials for this creator.
+     * Get all reviews for this creator.
      */
-    public function testimonials(): HasMany
+    public function reviews(): HasMany
     {
-        return $this->hasMany(Testimonial::class);
+        return $this->hasMany(Review::class);
     }
 
     /**
-     * Get approved testimonials only.
+     * Get approved reviews only.
      */
-    public function approvedTestimonials(): HasMany
+    public function approvedReviews(): HasMany
     {
-        return $this->hasMany(Testimonial::class)
+        return $this->hasMany(Review::class)
             ->where('status', 'approved')
+            ->where('is_private_feedback', false)
             ->orderBy('created_at', 'desc');
     }
 
@@ -75,6 +88,7 @@ class Creator extends Model
     public function generateCollectionUrl(): string
     {
         $base = $this->display_name ?? $this->user->name ?? 'creator';
+
         return static::generateCollectionUrlFromName($base);
     }
 
@@ -88,7 +102,7 @@ class Creator extends Model
         $counter = 1;
 
         while (static::where('collection_url', $url)->exists()) {
-            $url = $slug . '-' . $counter++;
+            $url = $slug.'-'.$counter++;
         }
 
         return $url;
@@ -108,21 +122,18 @@ class Creator extends Model
      */
     public function canUseFeature(string $feature): bool
     {
-        // Free plan features
         $freeFeatures = [
-            'create_testimonials',
-            'approve_testimonials',
+            'create_reviews',
+            'approve_reviews',
             'basic_widget',
         ];
 
-        // Pro plan features (includes all free + these)
         $proFeatures = [
-            'unlimited_testimonials',
+            'unlimited_reviews',
             'custom_branding',
             'remove_watermark',
         ];
 
-        // Business plan features (includes all pro + these)
         $businessFeatures = [
             'advanced_widgets',
             'api_access',
@@ -145,7 +156,7 @@ class Creator extends Model
     }
 
     /**
-     * Check if creator can remove TrustFolio branding from widget
+     * Check if creator can remove ReviewBridge branding from widget
      */
     public function canRemoveBranding(): bool
     {
@@ -153,18 +164,52 @@ class Creator extends Model
     }
 
     /**
-     * Check if creator has unlimited testimonials
+     * Check if creator has unlimited reviews
      */
-    public function hasUnlimitedTestimonials(): bool
+    public function hasUnlimitedReviews(): bool
     {
         return $this->hasPremiumSubscription();
     }
 
     /**
-     * Get the number of testimonials allowed based on plan
+     * Get the number of reviews allowed based on plan
      */
-    public function getMaxTestimonialsAttribute(): int
+    public function getMaxReviewsAttribute(): int
     {
-        return $this->hasUnlimitedTestimonials() ? PHP_INT_MAX : 10;
+        return $this->hasUnlimitedReviews() ? PHP_INT_MAX : 10;
+    }
+
+    /**
+     * Get the review threshold (defaults to 4).
+     */
+    public function getReviewThreshold(): int
+    {
+        return $this->review_threshold ?? 4;
+    }
+
+    /**
+     * Get the review prompt text.
+     */
+    public function getReviewPromptText(): string
+    {
+        return $this->review_prompt_text ?? 'Thank you! We\'d love to hear more about your experience.';
+    }
+
+    /**
+     * Get the private feedback text.
+     */
+    public function getPrivateFeedbackText(): string
+    {
+        return $this->private_feedback_text ?? 'We\'re sorry to hear that. Please share your feedback so we can improve.';
+    }
+
+    /**
+     * Get configured redirect platforms.
+     *
+     * @return array<int, array{name: string, url: string}>
+     */
+    public function getRedirectPlatforms(): array
+    {
+        return $this->redirect_platforms ?? [];
     }
 }

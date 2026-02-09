@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Creator;
-use App\Models\Testimonial;
+use App\Models\Review;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -13,7 +13,8 @@ class TestimonialManagementTest extends TestCase
     use RefreshDatabase;
 
     private Creator $creator;
-    private Testimonial $pendingTestimonial;
+
+    private Review $pendingTestimonial;
 
     protected function setUp(): void
     {
@@ -33,7 +34,7 @@ class TestimonialManagementTest extends TestCase
         ]);
 
         // Create a pending testimonial for testing
-        $this->pendingTestimonial = Testimonial::create([
+        $this->pendingTestimonial = Review::create([
             'creator_id' => $this->creator->id,
             'author_name' => 'John Doe',
             'author_email' => 'john@example.com',
@@ -58,7 +59,7 @@ class TestimonialManagementTest extends TestCase
 
         $this->assertEquals('approved', $this->pendingTestimonial->status);
         $this->assertNotNull($this->pendingTestimonial->approved_at);
-        $this->assertDatabaseHas('testimonials', [
+        $this->assertDatabaseHas('reviews', [
             'id' => $this->pendingTestimonial->id,
             'status' => 'approved',
         ]);
@@ -78,7 +79,7 @@ class TestimonialManagementTest extends TestCase
         $this->pendingTestimonial->refresh();
 
         $this->assertEquals('rejected', $this->pendingTestimonial->status);
-        $this->assertDatabaseHas('testimonials', [
+        $this->assertDatabaseHas('reviews', [
             'id' => $this->pendingTestimonial->id,
             'status' => 'rejected',
         ]);
@@ -95,7 +96,7 @@ class TestimonialManagementTest extends TestCase
 
         $response->assertSessionHas('status');
 
-        $this->assertSoftDeleted('testimonials', [
+        $this->assertSoftDeleted('reviews', [
             'id' => $this->pendingTestimonial->id,
         ]);
     }
@@ -155,7 +156,7 @@ class TestimonialManagementTest extends TestCase
 
         $response->assertStatus(403);
 
-        $this->assertDatabaseHas('testimonials', [
+        $this->assertDatabaseHas('reviews', [
             'id' => $this->pendingTestimonial->id,
             'deleted_at' => null,
         ]);
@@ -226,7 +227,7 @@ class TestimonialManagementTest extends TestCase
      */
     public function test_multiple_testimonials_can_be_managed(): void
     {
-        $testimonial1 = Testimonial::create([
+        $testimonial1 = Review::create([
             'creator_id' => $this->creator->id,
             'author_name' => 'User 1',
             'content' => 'First testimonial content here.',
@@ -234,7 +235,7 @@ class TestimonialManagementTest extends TestCase
             'status' => 'pending',
         ]);
 
-        $testimonial2 = Testimonial::create([
+        $testimonial2 = Review::create([
             'creator_id' => $this->creator->id,
             'author_name' => 'User 2',
             'content' => 'Second testimonial content here.',

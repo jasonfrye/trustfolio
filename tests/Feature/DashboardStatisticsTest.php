@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Creator;
-use App\Models\Testimonial;
+use App\Models\Review;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -13,6 +13,7 @@ class DashboardStatisticsTest extends TestCase
     use RefreshDatabase;
 
     private Creator $creator;
+
     private User $user;
 
     protected function setUp(): void
@@ -62,14 +63,14 @@ class DashboardStatisticsTest extends TestCase
     public function test_pending_count_displays_correctly(): void
     {
         // Create pending testimonials
-        Testimonial::create([
+        Review::create([
             'creator_id' => $this->creator->id,
             'author_name' => 'User 1',
             'content' => 'First testimonial content here.',
             'rating' => 5,
             'status' => 'pending',
         ]);
-        Testimonial::create([
+        Review::create([
             'creator_id' => $this->creator->id,
             'author_name' => 'User 2',
             'content' => 'Second testimonial content here.',
@@ -92,7 +93,7 @@ class DashboardStatisticsTest extends TestCase
     public function test_approved_count_displays_correctly(): void
     {
         // Create approved testimonials
-        $t1 = Testimonial::create([
+        $t1 = Review::create([
             'creator_id' => $this->creator->id,
             'author_name' => 'User 1',
             'content' => 'First testimonial content here.',
@@ -100,7 +101,7 @@ class DashboardStatisticsTest extends TestCase
             'status' => 'approved',
             'approved_at' => now(),
         ]);
-        $t2 = Testimonial::create([
+        $t2 = Review::create([
             'creator_id' => $this->creator->id,
             'author_name' => 'User 2',
             'content' => 'Second testimonial content here.',
@@ -108,7 +109,7 @@ class DashboardStatisticsTest extends TestCase
             'status' => 'approved',
             'approved_at' => now(),
         ]);
-        $t3 = Testimonial::create([
+        $t3 = Review::create([
             'creator_id' => $this->creator->id,
             'author_name' => 'User 3',
             'content' => 'Third testimonial content here.',
@@ -132,7 +133,7 @@ class DashboardStatisticsTest extends TestCase
     public function test_rejected_count_displays_correctly(): void
     {
         // Create rejected testimonials
-        Testimonial::create([
+        Review::create([
             'creator_id' => $this->creator->id,
             'author_name' => 'User 1',
             'content' => 'First testimonial content here.',
@@ -155,14 +156,14 @@ class DashboardStatisticsTest extends TestCase
     public function test_total_count_displays_correctly(): void
     {
         // Create various testimonials
-        Testimonial::create([
+        Review::create([
             'creator_id' => $this->creator->id,
             'author_name' => 'Pending User',
             'content' => 'Pending testimonial.',
             'rating' => 5,
             'status' => 'pending',
         ]);
-        Testimonial::create([
+        Review::create([
             'creator_id' => $this->creator->id,
             'author_name' => 'Approved User',
             'content' => 'Approved testimonial.',
@@ -170,7 +171,7 @@ class DashboardStatisticsTest extends TestCase
             'status' => 'approved',
             'approved_at' => now(),
         ]);
-        Testimonial::create([
+        Review::create([
             'creator_id' => $this->creator->id,
             'author_name' => 'Rejected User',
             'content' => 'Rejected testimonial.',
@@ -192,14 +193,14 @@ class DashboardStatisticsTest extends TestCase
      */
     public function test_status_filter_tabs_work_for_pending(): void
     {
-        Testimonial::create([
+        Review::create([
             'creator_id' => $this->creator->id,
             'author_name' => 'Pending User',
             'content' => 'Pending testimonial.',
             'rating' => 5,
             'status' => 'pending',
         ]);
-        Testimonial::create([
+        Review::create([
             'creator_id' => $this->creator->id,
             'author_name' => 'Approved User',
             'content' => 'Approved testimonial.',
@@ -208,7 +209,7 @@ class DashboardStatisticsTest extends TestCase
             'approved_at' => now(),
         ]);
 
-        $response = $this->actingAs($this->user)->get(route('dashboard') . '?status=pending');
+        $response = $this->actingAs($this->user)->get(route('dashboard').'?status=pending');
 
         $response->assertOk();
         $content = $response->getContent();
@@ -224,14 +225,14 @@ class DashboardStatisticsTest extends TestCase
      */
     public function test_status_filter_tabs_work_for_approved(): void
     {
-        Testimonial::create([
+        Review::create([
             'creator_id' => $this->creator->id,
             'author_name' => 'Pending User',
             'content' => 'Pending testimonial.',
             'rating' => 5,
             'status' => 'pending',
         ]);
-        Testimonial::create([
+        Review::create([
             'creator_id' => $this->creator->id,
             'author_name' => 'Approved User',
             'content' => 'Approved testimonial.',
@@ -240,7 +241,7 @@ class DashboardStatisticsTest extends TestCase
             'approved_at' => now(),
         ]);
 
-        $response = $this->actingAs($this->user)->get(route('dashboard') . '?status=approved');
+        $response = $this->actingAs($this->user)->get(route('dashboard').'?status=approved');
 
         $response->assertOk();
         $content = $response->getContent();
@@ -256,7 +257,7 @@ class DashboardStatisticsTest extends TestCase
      */
     public function test_status_filter_tabs_work_for_rejected(): void
     {
-        Testimonial::create([
+        Review::create([
             'creator_id' => $this->creator->id,
             'author_name' => 'Rejected User',
             'content' => 'Rejected testimonial.',
@@ -264,7 +265,7 @@ class DashboardStatisticsTest extends TestCase
             'status' => 'rejected',
         ]);
 
-        $response = $this->actingAs($this->user)->get(route('dashboard') . '?status=rejected');
+        $response = $this->actingAs($this->user)->get(route('dashboard').'?status=rejected');
 
         $response->assertOk();
         $content = $response->getContent();
@@ -279,7 +280,7 @@ class DashboardStatisticsTest extends TestCase
     public function test_stats_reflect_status_changes(): void
     {
         // Create pending testimonial
-        $testimonial = Testimonial::create([
+        $testimonial = Review::create([
             'creator_id' => $this->creator->id,
             'author_name' => 'Test User',
             'content' => 'Testimonial content here for status change.',
@@ -313,7 +314,7 @@ class DashboardStatisticsTest extends TestCase
         $content = $response->getContent();
 
         // Should show empty state message
-        $this->assertStringContainsString('No testimonials yet', $content);
+        $this->assertStringContainsString('No reviews yet', $content);
     }
 
     /**

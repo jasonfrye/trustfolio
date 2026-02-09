@@ -4,36 +4,37 @@ namespace App\Http\Controllers;
 
 use App\Models\Creator;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
     public function __invoke(Request $request)
     {
         $user = $request->user();
-        
-        // Check if user has a creator profile
+
         $creator = Creator::where('user_id', $user->id)->first();
-        
-        if (!$creator) {
-            // Creator profile doesn't exist, redirect to create one
+
+        if (! $creator) {
             return redirect()->route('creator.setup');
         }
 
         $stats = [
-            'total' => $creator->testimonials()->count(),
-            'pending' => $creator->testimonials()->pending()->count(),
-            'approved' => $creator->testimonials()->approved()->count(),
-            'rejected' => $creator->testimonials()->rejected()->count(),
+            'total' => $creator->reviews()->where('is_private_feedback', false)->count(),
+            'pending' => $creator->reviews()->pending()->count(),
+            'approved' => $creator->reviews()->approved()->count(),
+            'rejected' => $creator->reviews()->rejected()->count(),
+            'private_feedback' => $creator->reviews()->privateFeedback()->count(),
         ];
 
-        // Get testimonials with optional status filter
-        $testimonialsQuery = $creator->testimonials();
-        if (request('status') && in_array(request('status'), ['pending', 'approved', 'rejected'])) {
-            $testimonialsQuery->where('status', request('status'));
+        $reviewsQuery = $creator->reviews();
+        if (request('status') === 'private_feedback') {
+            $reviewsQuery->where('is_private_feedback', true);
+        } elseif (request('status') && in_array(request('status'), ['pending', 'approved', 'rejected'])) {
+            $reviewsQuery->where('status', request('status'))->where('is_private_feedback', false);
+        } else {
+            $reviewsQuery->where('is_private_feedback', false);
         }
-        $testimonials = $testimonialsQuery->latest()->get();
+        $reviews = $reviewsQuery->latest()->get();
 
-        return view('dashboard', compact('creator', 'stats', 'testimonials'));
+        return view('dashboard', compact('creator', 'stats', 'reviews'));
     }
 }
