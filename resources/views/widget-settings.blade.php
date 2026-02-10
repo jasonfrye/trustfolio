@@ -171,10 +171,38 @@
                     <div>
                         <x-input-label for="layout" value="Layout" class="text-navy-900 font-semibold mb-2" />
                         <select id="layout" name="layout" class="input-field">
-                            @foreach(\App\Models\WidgetSetting::getLayoutOptions() as $value => $label)
-                                <option value="{{ $value }}" {{ $settings->layout === $value ? 'selected' : '' }}>{{ $label }}</option>
-                            @endforeach
+                            <optgroup label="Basic Layouts">
+                                @foreach(\App\Models\WidgetSetting::getBasicLayouts() as $value)
+                                    <option value="{{ $value }}" {{ $settings->layout === $value ? 'selected' : '' }}>
+                                        {{ \App\Models\WidgetSetting::getLayoutOptions()[$value] }}
+                                    </option>
+                                @endforeach
+                            </optgroup>
+                            <optgroup label="Advanced Layouts{{ $creator->hasPremiumSubscription() ? '' : ' (Pro)' }}">
+                                @foreach(\App\Models\WidgetSetting::getAdvancedLayouts() as $value)
+                                    <option value="{{ $value }}" {{ $settings->layout === $value ? 'selected' : '' }} {{ !$creator->hasPremiumSubscription() ? 'disabled' : '' }}>
+                                        {{ \App\Models\WidgetSetting::getLayoutOptions()[$value] }}{{ !$creator->hasPremiumSubscription() ? ' 🔒' : '' }}
+                                    </option>
+                                @endforeach
+                            </optgroup>
                         </select>
+                        <p class="mt-1 text-sm text-navy-500">
+                            @if($settings->layout === 'cards')
+                                Vertical stack of review cards with full content
+                            @elseif($settings->layout === 'list')
+                                Compact list view of reviews
+                            @elseif($settings->layout === 'grid')
+                                Responsive grid layout
+                            @elseif($settings->layout === 'carousel')
+                                <span class="text-brand-600 font-medium">Pro:</span> Auto-rotating slider with navigation dots
+                            @elseif($settings->layout === 'masonry')
+                                <span class="text-brand-600 font-medium">Pro:</span> Pinterest-style varied height grid
+                            @elseif($settings->layout === 'wall')
+                                <span class="text-brand-600 font-medium">Pro:</span> Compact grid with avatar focus
+                            @elseif($settings->layout === 'single')
+                                <span class="text-brand-600 font-medium">Pro:</span> One review with smooth crossfade transitions
+                            @endif
+                        </p>
                         <x-input-error class="mt-2" :messages="$errors->get('layout')" />
                     </div>
 
@@ -291,71 +319,27 @@
 
         <!-- Preview Section -->
         <div class="card-elevated p-6">
-            <h2 class="text-xl font-semibold text-navy-900 mb-4">Preview</h2>
+            <h2 class="text-xl font-semibold text-navy-900 mb-4">Live Preview</h2>
             @if($previewReviews->count() > 0)
-                <p class="text-navy-600 mb-6">Live preview using your approved reviews.</p>
+                <p class="text-navy-600 mb-6">Live preview using your actual widget with current settings.</p>
             @else
-                <p class="text-navy-600 mb-6">Preview showing how your widget will look.</p>
+                <p class="text-navy-600 mb-6">Add approved reviews to see the preview.</p>
             @endif
 
-            <div id="widget-preview" class="border-2 border-dashed border-navy-300 rounded-xl p-8 bg-navy-50/30">
-                <div class="space-y-4">
-                    @if($previewReviews->count() > 0)
-                        @foreach($previewReviews as $review)
-                        <div class="max-w-md mx-auto bg-white rounded-xl shadow-md border border-navy-200 p-6">
-                            <div class="flex items-start gap-4">
-                                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white font-bold text-lg shrink-0">
-                                    {{ strtoupper(substr($review->author_name ?? '?', 0, 1)) }}
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <h4 class="font-semibold text-navy-900">{{ $review->author_name }}</h4>
-                                        @if($review->rating)
-                                        <div class="flex text-amber-400 text-sm">
-                                            @for($i = 1; $i <= 5; $i++)
-                                                <span>{{ $i <= $review->rating ? '★' : '☆' }}</span>
-                                            @endfor
-                                        </div>
-                                        @endif
-                                    </div>
-                                    @if($review->author_title)
-                                        <p class="text-sm text-navy-600 mb-2">{{ $review->author_title }}</p>
-                                    @endif
-                                    <p class="text-navy-700 leading-relaxed">
-                                        "{{ $review->content }}"
-                                    </p>
-                                    <p class="text-xs text-navy-500 mt-3">{{ $review->created_at->diffForHumans() }}</p>
-                                </div>
-                            </div>
-                        </div>
-                        @endforeach
-                    @else
-                        <div class="max-w-md mx-auto bg-white rounded-xl shadow-md border border-navy-200 p-6">
-                            <div class="flex items-start gap-4">
-                                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white font-bold text-lg shrink-0">
-                                    {{ strtoupper(substr($creator->display_name, 0, 1)) }}
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <h4 class="font-semibold text-navy-900">Happy Customer</h4>
-                                        <div class="flex text-amber-400 text-sm">
-                                            <span>★</span>
-                                            <span>★</span>
-                                            <span>★</span>
-                                            <span>★</span>
-                                            <span>★</span>
-                                        </div>
-                                    </div>
-                                    <p class="text-sm text-navy-600 mb-2">Customer at {{ $creator->display_name }}</p>
-                                    <p class="text-navy-700 leading-relaxed">
-                                        "{{ $creator->display_name }} provided excellent service! Highly recommend to anyone looking for quality and professionalism."
-                                    </p>
-                                    <p class="text-xs text-navy-500 mt-3">Sample review</p>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
-                </div>
+            <div class="border-2 border-dashed border-navy-300 rounded-xl p-8 bg-navy-50/30">
+                @if($previewReviews->count() > 0)
+                    <!-- Actual Widget Embed -->
+                    <div id="reviewbridge-widget" data-collection="{{ $creator->collection_url }}"></div>
+                    <script src="{{ route('widget.script', $creator->collection_url) }}?v={{ $settings->updated_at->timestamp }}" defer></script>
+                @else
+                    <div class="text-center text-navy-500 py-12">
+                        <svg class="w-16 h-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
+                        </svg>
+                        <p class="text-sm font-medium">No approved reviews yet</p>
+                        <p class="text-xs mt-2">Reviews will appear here once approved</p>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
@@ -366,11 +350,44 @@
 
         function copyEmbedCode() {
             const code = @json($embedCode);
-            navigator.clipboard.writeText(code).then(() => {
-                alert('Embed code copied to clipboard!');
-            }).catch(err => {
-                console.error('Failed to copy embed code:', err);
-            });
+
+            // Try modern clipboard API first
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(code).then(() => {
+                    alert('Embed code copied to clipboard!');
+                }).catch(err => {
+                    console.error('Clipboard API failed, trying fallback:', err);
+                    fallbackCopyEmbed(code);
+                });
+            } else {
+                // Fallback for HTTP or older browsers
+                fallbackCopyEmbed(code);
+            }
+        }
+
+        function fallbackCopyEmbed(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    alert('Embed code copied to clipboard!');
+                } else {
+                    alert('Failed to copy. Please copy manually.');
+                }
+            } catch (err) {
+                console.error('Fallback copy failed:', err);
+                alert('Failed to copy. Please copy manually.');
+            }
+
+            document.body.removeChild(textArea);
         }
 
         function updateThemeColors() {

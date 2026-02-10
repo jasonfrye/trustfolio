@@ -83,6 +83,14 @@ class Creator extends Model
     }
 
     /**
+     * Get testimonial requests for this creator.
+     */
+    public function testimonialRequests(): HasMany
+    {
+        return $this->hasMany(TestimonialRequest::class);
+    }
+
+    /**
      * Generate a unique collection URL if not set.
      */
     public function generateCollectionUrl(): string
@@ -132,6 +140,7 @@ class Creator extends Model
             'unlimited_reviews',
             'custom_branding',
             'remove_watermark',
+            'email_requests',
         ];
 
         $businessFeatures = [
@@ -177,39 +186,5 @@ class Creator extends Model
     public function getMaxReviewsAttribute(): int
     {
         return $this->hasUnlimitedReviews() ? PHP_INT_MAX : 10;
-    }
-
-    /**
-     * Get the review threshold (defaults to 4).
-     */
-    public function getReviewThreshold(): int
-    {
-        return $this->review_threshold ?? 4;
-    }
-
-    /**
-     * Get the review prompt text.
-     */
-    public function getReviewPromptText(): string
-    {
-        return $this->review_prompt_text ?? 'Thank you! We\'d love to hear more about your experience.';
-    }
-
-    /**
-     * Get the private feedback text.
-     */
-    public function getPrivateFeedbackText(): string
-    {
-        return $this->private_feedback_text ?? 'We\'re sorry to hear that. Please share your feedback so we can improve.';
-    }
-
-    /**
-     * Get configured redirect platforms.
-     *
-     * @return array<int, array{name: string, url: string}>
-     */
-    public function getRedirectPlatforms(): array
-    {
-        return $this->redirect_platforms ?? [];
     }
 }

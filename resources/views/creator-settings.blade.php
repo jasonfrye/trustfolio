@@ -2,8 +2,8 @@
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Page Header -->
         <div class="mb-8">
-            <h1 class="text-3xl font-bold text-navy-900">Creator Settings</h1>
-            <p class="mt-2 text-navy-600">Manage your review collection page, embed widget, and review funnel settings.</p>
+            <h1 class="text-3xl font-bold text-navy-900">Settings</h1>
+            <p class="mt-2 text-navy-600">Manage your testimonial collection page and embed widget.</p>
         </div>
 
         <!-- Success Flash Message -->
@@ -20,8 +20,8 @@
 
         <!-- Collection URL Section -->
         <div class="card-elevated p-6 mb-6">
-            <h2 class="text-xl font-semibold text-navy-900 mb-4">Your Review Collection Link</h2>
-            <p class="text-navy-600 mb-4">Share this link to collect reviews from your customers.</p>
+            <h2 class="text-xl font-semibold text-navy-900 mb-4">Your Testimonial Collection Link</h2>
+            <p class="text-navy-600 mb-4">Share this link to collect testimonials from your customers.</p>
 
             <div class="bg-navy-50 rounded-xl p-4 mb-4 border border-navy-200">
                 <code class="text-brand-600 text-sm font-mono break-all">{{ $collectionUrl }}</code>
@@ -109,140 +109,11 @@
             <div class="mb-8">
                 <label class="block text-sm font-semibold text-navy-900 mb-2">Collection URL Slug</label>
                 <div class="bg-navy-50 rounded-xl p-4 border border-navy-200">
-                    <p class="text-sm text-navy-600 mb-1">Your review collection page:</p>
+                    <p class="text-sm text-navy-600 mb-1">Your testimonial collection page:</p>
                     <code class="text-brand-600 font-mono text-sm break-all">{{ $collectionUrl }}</code>
                 </div>
             </div>
 
-            <!-- Review Funnel Settings -->
-            <div class="border-t border-navy-200 pt-8 mt-8">
-                <h3 class="text-lg font-semibold text-navy-900 mb-6">Review Funnel Settings</h3>
-
-                <!-- Review Threshold -->
-                <div class="mb-6">
-                    <x-input-label for="review_threshold" value="Review Threshold" class="text-navy-900 font-semibold mb-2" />
-                    <p class="text-sm text-navy-600 mb-3">Reviews below this rating will be directed to private feedback instead of public platforms.</p>
-                    <select id="review_threshold" name="review_threshold" class="input-field">
-                        @for ($i = 1; $i <= 5; $i++)
-                            <option value="{{ $i }}" {{ old('review_threshold', $creator->review_threshold ?? 4) == $i ? 'selected' : '' }}>
-                                {{ $i }} {{ $i === 1 ? 'Star' : 'Stars' }} or Higher
-                            </option>
-                        @endfor
-                    </select>
-                    <x-input-error class="mt-2" :messages="$errors->get('review_threshold')" />
-                </div>
-
-                <!-- Google Review URL -->
-                <div class="mb-6">
-                    <x-input-label for="google_review_url" value="Google Review URL" class="text-navy-900 font-semibold mb-2" />
-                    <p class="text-sm text-navy-600 mb-3">Your Google Business Profile review link (for high-rated reviews).</p>
-                    <x-text-input
-                        id="google_review_url"
-                        name="google_review_url"
-                        type="url"
-                        class="input-field"
-                        :value="old('google_review_url', $creator->google_review_url)"
-                        placeholder="https://g.page/r/..."
-                    />
-                    <x-input-error class="mt-2" :messages="$errors->get('google_review_url')" />
-                </div>
-
-                <!-- Additional Platforms -->
-                <div class="mb-6" x-data="{ platforms: {{ Js::from(old('redirect_platforms', $creator->redirect_platforms ?? [])) }} }">
-                    <x-input-label value="Additional Review Platforms" class="text-navy-900 font-semibold mb-2" />
-                    <p class="text-sm text-navy-600 mb-3">Add other platforms where customers can leave reviews (e.g., Yelp, Facebook, Trustpilot).</p>
-
-                    <template x-for="(platform, index) in platforms" :key="index">
-                        <div class="flex gap-3 mb-3">
-                            <input
-                                type="text"
-                                x-model="platform.name"
-                                :name="'redirect_platforms[' + index + '][name]'"
-                                placeholder="Platform name (e.g., Yelp)"
-                                class="input-field flex-1"
-                            />
-                            <input
-                                type="url"
-                                x-model="platform.url"
-                                :name="'redirect_platforms[' + index + '][url]'"
-                                placeholder="Review URL"
-                                class="input-field flex-1"
-                            />
-                            <button
-                                type="button"
-                                @click="platforms.splice(index, 1)"
-                                class="px-4 py-3 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl border border-navy-200 transition-colors"
-                            >
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                                </svg>
-                            </button>
-                        </div>
-                    </template>
-
-                    <button
-                        type="button"
-                        @click="platforms.push({ name: '', url: '' })"
-                        class="btn-ghost w-full justify-center"
-                    >
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                        </svg>
-                        Add Platform
-                    </button>
-                </div>
-
-                <!-- Prefill Customer Info -->
-                <div class="mb-6" x-data="{ prefillEnabled: {{ old('prefill_enabled', $creator->prefill_enabled ?? false) ? 'true' : 'false' }} }">
-                    <div class="flex items-start">
-                        <div class="flex items-center h-5">
-                            <input
-                                id="prefill_enabled"
-                                name="prefill_enabled"
-                                type="checkbox"
-                                value="1"
-                                x-model="prefillEnabled"
-                                class="w-4 h-4 text-brand-600 border-navy-300 rounded focus:ring-brand-500"
-                            />
-                        </div>
-                        <div class="ml-3">
-                            <label for="prefill_enabled" class="font-semibold text-navy-900">Enable URL Prefill Parameters</label>
-                            <p class="text-sm text-navy-600 mt-1">Allow customer name and email to be prefilled via URL parameters.</p>
-                            <div x-show="prefillEnabled" x-cloak class="mt-3 p-4 bg-brand-50 rounded-lg border border-brand-200">
-                                <p class="text-sm text-brand-900 font-medium mb-1">Example URL:</p>
-                                <code class="text-xs text-brand-700 font-mono break-all">{{ $collectionUrl }}?name=John+Doe&email=john@example.com</code>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Custom Messages -->
-                <div class="mb-6">
-                    <x-input-label for="review_prompt_text" value="Review Request Message" class="text-navy-900 font-semibold mb-2" />
-                    <p class="text-sm text-navy-600 mb-3">Customize the message shown on your review collection page.</p>
-                    <textarea
-                        id="review_prompt_text"
-                        name="review_prompt_text"
-                        rows="3"
-                        class="input-field"
-                        placeholder="We'd love to hear about your experience!"
-                    >{{ old('review_prompt_text', $creator->review_prompt_text) }}</textarea>
-                    <x-input-error class="mt-2" :messages="$errors->get('review_prompt_text')" />
-                </div>
-
-                <div class="mb-6">
-                    <x-input-label for="private_feedback_text" value="Private Feedback Message" class="text-navy-900 font-semibold mb-2" />
-                    <p class="text-sm text-navy-600 mb-3">Message shown to customers when they submit private feedback.</p>
-                    <textarea
-                        id="private_feedback_text"
-                        name="private_feedback_text"
-                        rows="3"
-                        class="input-field"
-                        placeholder="Thank you for your feedback. We'll use it to improve our service."
-                    >{{ old('private_feedback_text', $creator->private_feedback_text) }}</textarea>
-                    <x-input-error class="mt-2" :messages="$errors->get('private_feedback_text')" />
-                </div>
-            </div>
 
             <!-- Save Button -->
             <div class="flex items-center justify-end pt-6 border-t border-navy-200">
@@ -268,11 +139,44 @@
 
         function copyEmbedCode() {
             const code = @json($embedCode);
-            navigator.clipboard.writeText(code).then(() => {
-                alert('Embed code copied to clipboard!');
-            }).catch(err => {
-                console.error('Failed to copy embed code:', err);
-            });
+
+            // Try modern clipboard API first
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(code).then(() => {
+                    alert('Embed code copied to clipboard!');
+                }).catch(err => {
+                    console.error('Clipboard API failed, trying fallback:', err);
+                    fallbackCopyEmbed(code);
+                });
+            } else {
+                // Fallback for HTTP or older browsers
+                fallbackCopyEmbed(code);
+            }
+        }
+
+        function fallbackCopyEmbed(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    alert('Embed code copied to clipboard!');
+                } else {
+                    alert('Failed to copy. Please copy manually.');
+                }
+            } catch (err) {
+                console.error('Fallback copy failed:', err);
+                alert('Failed to copy. Please copy manually.');
+            }
+
+            document.body.removeChild(textArea);
         }
     </script>
 

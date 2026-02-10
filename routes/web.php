@@ -23,6 +23,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/creator/settings', [\App\Http\Controllers\CreatorSettingsController::class, 'update'])->name('creator.settings.update');
     Route::get('/widget/settings', [\App\Http\Controllers\WidgetSettingsController::class, 'index'])->name('widget.settings');
     Route::put('/widget/settings', [\App\Http\Controllers\WidgetSettingsController::class, 'update'])->name('widget.settings.update');
+    Route::resource('testimonial-requests', \App\Http\Controllers\TestimonialRequestController::class)->only(['index', 'create', 'store']);
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

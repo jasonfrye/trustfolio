@@ -5,16 +5,18 @@ namespace Tests\Feature;
 use App\Models\Creator;
 use App\Models\User;
 use App\Models\WidgetSetting;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class WidgetCustomizationEdgeCasesTest extends TestCase
 {
     use RefreshDatabase;
 
     protected User $user;
+
     protected Creator $creator;
+
     protected WidgetSetting $widgetSettings;
 
     protected function setUp(): void
@@ -52,63 +54,63 @@ class WidgetCustomizationEdgeCasesTest extends TestCase
     public function border_radius_negative_value_is_clamped_to_zero()
     {
         $this->actingAs($this->user);
-        
+
         $response = $this->put('/widget/settings', $this->validData([
             'border_radius' => -5,
         ]));
-        
+
         $this->widgetSettings->refresh();
-        $this->assertEquals(0, (int)$this->widgetSettings->border_radius);
+        $this->assertEquals(0, (int) $this->widgetSettings->border_radius);
     }
 
     #[Test]
     public function border_radius_extreme_large_value_is_clamped_to_max()
     {
         $this->actingAs($this->user);
-        
+
         $response = $this->put('/widget/settings', $this->validData([
             'border_radius' => 999,
         ]));
-        
+
         $this->widgetSettings->refresh();
-        $this->assertEquals(16, (int)$this->widgetSettings->border_radius);
+        $this->assertEquals(16, (int) $this->widgetSettings->border_radius);
     }
 
     #[Test]
     public function border_radius_decimal_value_is_rounded()
     {
         $this->actingAs($this->user);
-        
+
         $response = $this->put('/widget/settings', $this->validData([
             'border_radius' => 7.5,
         ]));
-        
+
         $this->widgetSettings->refresh();
-        $this->assertEquals(8, (int)$this->widgetSettings->border_radius);
+        $this->assertEquals(8, (int) $this->widgetSettings->border_radius);
     }
 
     #[Test]
     public function border_radius_zero_is_valid()
     {
         $this->actingAs($this->user);
-        
+
         $response = $this->put('/widget/settings', $this->validData([
             'border_radius' => 0,
         ]));
-        
+
         $this->widgetSettings->refresh();
-        $this->assertEquals(0, (int)$this->widgetSettings->border_radius);
+        $this->assertEquals(0, (int) $this->widgetSettings->border_radius);
     }
 
     #[Test]
     public function short_hex_color_is_expanded_to_full_six_digits()
     {
         $this->actingAs($this->user);
-        
+
         $response = $this->put('/widget/settings', $this->validData([
             'primary_color' => '#fff',
         ]));
-        
+
         $this->widgetSettings->refresh();
         $this->assertEquals('#ffffff', $this->widgetSettings->primary_color);
     }
@@ -117,11 +119,11 @@ class WidgetCustomizationEdgeCasesTest extends TestCase
     public function three_digit_hex_color_is_expanded_correctly()
     {
         $this->actingAs($this->user);
-        
+
         $response = $this->put('/widget/settings', $this->validData([
             'primary_color' => '#abc',
         ]));
-        
+
         $this->widgetSettings->refresh();
         $this->assertEquals('#aabbcc', $this->widgetSettings->primary_color);
     }
@@ -130,11 +132,11 @@ class WidgetCustomizationEdgeCasesTest extends TestCase
     public function invalid_hex_color_with_invalid_characters_is_rejected()
     {
         $this->actingAs($this->user);
-        
+
         $response = $this->put('/widget/settings', $this->validData([
             'primary_color' => '#gggggg',
         ]));
-        
+
         $response->assertSessionHasErrors('primary_color');
     }
 
@@ -142,11 +144,11 @@ class WidgetCustomizationEdgeCasesTest extends TestCase
     public function malformed_hex_color_without_hash_is_rejected()
     {
         $this->actingAs($this->user);
-        
+
         $response = $this->put('/widget/settings', $this->validData([
             'primary_color' => 'ffffff',
         ]));
-        
+
         $response->assertSessionHasErrors('primary_color');
     }
 
@@ -154,11 +156,11 @@ class WidgetCustomizationEdgeCasesTest extends TestCase
     public function empty_color_string_is_valid_for_optional_field()
     {
         $this->actingAs($this->user);
-        
+
         $response = $this->put('/widget/settings', $this->validData([
             'primary_color' => '',
         ]));
-        
+
         $response->assertSessionDoesntHaveErrors('primary_color');
     }
 
@@ -166,11 +168,11 @@ class WidgetCustomizationEdgeCasesTest extends TestCase
     public function null_color_is_handled_gracefully()
     {
         $this->actingAs($this->user);
-        
+
         $response = $this->put('/widget/settings', $this->validData([
             'primary_color' => null,
         ]));
-        
+
         $response->assertSessionDoesntHaveErrors('primary_color');
     }
 
@@ -184,11 +186,11 @@ class WidgetCustomizationEdgeCasesTest extends TestCase
     public function invalid_theme_value_is_rejected()
     {
         $this->actingAs($this->user);
-        
+
         $response = $this->put('/widget/settings', $this->validData([
             'theme' => 'invalid_theme',
         ]));
-        
+
         $response->assertSessionHasErrors('theme');
     }
 
@@ -196,7 +198,7 @@ class WidgetCustomizationEdgeCasesTest extends TestCase
     public function valid_theme_values_are_accepted()
     {
         $this->actingAs($this->user);
-        
+
         foreach (['light', 'dark', 'custom'] as $theme) {
             $response = $this->put('/widget/settings', $this->validData([
                 'theme' => $theme,
@@ -209,38 +211,38 @@ class WidgetCustomizationEdgeCasesTest extends TestCase
     public function very_small_border_radius_is_clamped_to_zero()
     {
         $this->actingAs($this->user);
-        
+
         $response = $this->put('/widget/settings', $this->validData([
             'border_radius' => 0.1,
         ]));
-        
+
         $this->widgetSettings->refresh();
-        $this->assertEquals(0, (int)$this->widgetSettings->border_radius);
+        $this->assertEquals(0, (int) $this->widgetSettings->border_radius);
     }
 
     #[Test]
     public function border_radius_max_value_is_valid()
     {
         $this->actingAs($this->user);
-        
+
         $response = $this->put('/widget/settings', $this->validData([
             'border_radius' => 16,
         ]));
-        
+
         $this->widgetSettings->refresh();
-        $this->assertEquals(16, (int)$this->widgetSettings->border_radius);
+        $this->assertEquals(16, (int) $this->widgetSettings->border_radius);
     }
 
     #[Test]
     public function border_radius_just_over_max_is_clamped()
     {
         $this->actingAs($this->user);
-        
+
         $response = $this->put('/widget/settings', $this->validData([
             'border_radius' => 17,
         ]));
-        
+
         $this->widgetSettings->refresh();
-        $this->assertLessThanOrEqual(16, (int)$this->widgetSettings->border_radius);
+        $this->assertLessThanOrEqual(16, (int) $this->widgetSettings->border_radius);
     }
 }

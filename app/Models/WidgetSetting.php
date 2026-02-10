@@ -37,15 +37,29 @@ class WidgetSetting extends Model
     ];
 
     public const THEME_LIGHT = 'light';
+
     public const THEME_DARK = 'dark';
+
     public const THEME_CUSTOM = 'custom';
 
     public const LAYOUT_CARDS = 'cards';
+
     public const LAYOUT_LIST = 'list';
+
     public const LAYOUT_GRID = 'grid';
 
+    public const LAYOUT_CAROUSEL = 'carousel';
+
+    public const LAYOUT_MASONRY = 'masonry';
+
+    public const LAYOUT_WALL = 'wall';
+
+    public const LAYOUT_SINGLE = 'single';
+
     public const SORT_RECENT = 'recent';
+
     public const SORT_RANDOM = 'random';
+
     public const SORT_HIGHEST_RATED = 'highest_rated';
 
     /**
@@ -65,7 +79,44 @@ class WidgetSetting extends Model
             self::LAYOUT_CARDS => 'Cards',
             self::LAYOUT_LIST => 'List',
             self::LAYOUT_GRID => 'Grid',
+            self::LAYOUT_CAROUSEL => 'Carousel',
+            self::LAYOUT_MASONRY => 'Masonry',
+            self::LAYOUT_WALL => 'Wall of Love',
+            self::LAYOUT_SINGLE => 'Single Rotating',
         ];
+    }
+
+    /**
+     * Get basic (free) layout options.
+     */
+    public static function getBasicLayouts(): array
+    {
+        return [
+            self::LAYOUT_CARDS,
+            self::LAYOUT_LIST,
+            self::LAYOUT_GRID,
+        ];
+    }
+
+    /**
+     * Get advanced (Pro) layout options.
+     */
+    public static function getAdvancedLayouts(): array
+    {
+        return [
+            self::LAYOUT_CAROUSEL,
+            self::LAYOUT_MASONRY,
+            self::LAYOUT_WALL,
+            self::LAYOUT_SINGLE,
+        ];
+    }
+
+    /**
+     * Check if a layout requires a Pro plan.
+     */
+    public static function layoutRequiresPro(string $layout): bool
+    {
+        return in_array($layout, self::getAdvancedLayouts());
     }
 
     /**

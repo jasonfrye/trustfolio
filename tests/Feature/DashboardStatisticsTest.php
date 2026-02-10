@@ -314,7 +314,7 @@ class DashboardStatisticsTest extends TestCase
         $content = $response->getContent();
 
         // Should show empty state message
-        $this->assertStringContainsString('No reviews yet', $content);
+        $this->assertStringContainsString('No testimonials yet', $content);
     }
 
     /**

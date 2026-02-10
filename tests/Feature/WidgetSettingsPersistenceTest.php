@@ -13,6 +13,7 @@ class WidgetSettingsPersistenceTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private Creator $creator;
 
     protected function setUp(): void

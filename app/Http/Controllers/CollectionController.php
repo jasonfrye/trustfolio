@@ -3,25 +3,29 @@
 namespace App\Http\Controllers;
 
 use App\Models\Creator;
+use App\Models\TestimonialRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class CollectionController extends Controller
 {
-    public function __invoke(string $collectionUrl)
+    public function __invoke(Request $request, string $collectionUrl)
     {
         $creator = Creator::where('collection_url', $collectionUrl)
             ->with('user')
             ->firstOrFail();
 
+        $testimonialRequest = null;
+        if ($request->has('token')) {
+            $testimonialRequest = TestimonialRequest::where('token', $request->token)
+                ->where('creator_id', $creator->id)
+                ->whereNull('responded_at')
+                ->first();
+        }
+
         return view('collection.show', [
             'creator' => $creator,
-            'threshold' => $creator->getReviewThreshold(),
-            'reviewPromptText' => $creator->getReviewPromptText(),
-            'privateFeedbackText' => $creator->getPrivateFeedbackText(),
-            'platforms' => $creator->getRedirectPlatforms(),
-            'googleReviewUrl' => $creator->google_review_url,
-            'prefillEnabled' => $creator->prefill_enabled,
+            'testimonialRequest' => $testimonialRequest,
         ]);
     }
 
@@ -35,6 +39,7 @@ class CollectionController extends Controller
             'title' => ['nullable', 'string', 'max:255'],
             'content' => ['required', 'string', 'min:10', 'max:2000'],
             'rating' => ['required', 'integer', 'min:1', 'max:5'],
+            'token' => ['nullable', 'string', 'max:64'],
         ]);
 
         if ($validator->fails()) {
@@ -45,34 +50,35 @@ class CollectionController extends Controller
             return back()->withErrors($validator)->withInput();
         }
 
-        $rating = (int) $request->rating;
-        $isPrivateFeedback = $rating < $creator->getReviewThreshold();
-
         $review = $creator->reviews()->create([
             'author_name' => $request->name,
             'author_email' => $request->email,
             'author_title' => $request->title,
             'content' => $request->content,
-            'rating' => $rating,
+            'rating' => (int) $request->rating,
             'status' => 'pending',
             'ip_address' => $request->ip(),
-            'is_private_feedback' => $isPrivateFeedback,
+            'is_private_feedback' => false,
         ]);
 
-        if ($request->expectsJson()) {
-            $responseData = [
-                'success' => true,
-                'type' => $isPrivateFeedback ? 'private_feedback' : 'review',
-            ];
+        // Mark testimonial request as responded if token provided
+        if ($request->has('token')) {
+            $testimonialRequest = TestimonialRequest::where('token', $request->token)
+                ->where('creator_id', $creator->id)
+                ->whereNull('responded_at')
+                ->first();
 
-            if (! $isPrivateFeedback) {
-                $responseData['google_review_url'] = $creator->google_review_url;
-                $responseData['platforms'] = $creator->getRedirectPlatforms();
+            if ($testimonialRequest) {
+                $testimonialRequest->markAsResponded($review);
             }
-
-            return response()->json($responseData);
         }
 
-        return back()->with('success', 'Thank you for your review! It will be reviewed shortly.');
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+            ]);
+        }
+
+        return back()->with('success', 'Thank you for your testimonial! It will be reviewed shortly.');
     }
 }

@@ -2,12 +2,12 @@
 
 namespace App\Services;
 
-use Stripe\Stripe;
 use Stripe\Checkout\Session;
 use Stripe\Customer;
-use Stripe\Subscription;
-use Stripe\Product;
 use Stripe\Price;
+use Stripe\Product;
+use Stripe\Stripe;
+use Stripe\Subscription;
 
 class StripeService
 {
@@ -15,7 +15,7 @@ class StripeService
 
     public function __construct()
     {
-        $this->stripe = new Stripe();
+        $this->stripe = new Stripe;
         $this->stripe->setApiKey(config('services.stripe.secret'));
         $this->stripe->setApiVersion('2024-12-18.acacia');
     }
@@ -45,8 +45,7 @@ class StripeService
         string $priceId,
         string $successUrl,
         string $cancelUrl
-    ): Session
-    {
+    ): Session {
         return Session::create([
             'customer' => $customerId,
             'payment_method_types' => ['card'],
@@ -71,8 +70,7 @@ class StripeService
         string $productName,
         string $successUrl,
         string $cancelUrl
-    ): Session
-    {
+    ): Session {
         return Session::create([
             'payment_method_types' => ['card'],
             'line_items' => [
@@ -99,6 +97,7 @@ class StripeService
     public function cancelSubscription(string $subscriptionId): Subscription
     {
         $subscription = Subscription::retrieve($subscriptionId);
+
         return $subscription->cancel();
     }
 
@@ -142,6 +141,7 @@ class StripeService
     public function constructWebhookEvent(string $payload, string $signature): object
     {
         $webhookSecret = config('services.stripe.webhook_secret');
+
         return \Stripe\Webhook::constructEvent($payload, $signature, $webhookSecret);
     }
 
@@ -150,7 +150,8 @@ class StripeService
      */
     public function createBillingPortalSession(string $customerId, string $returnUrl): object
     {
-        $portalSession = new \Stripe\BillingPortal\Session();
+        $portalSession = new \Stripe\BillingPortal\Session;
+
         return $portalSession->create([
             'customer' => $customerId,
             'return_url' => $returnUrl,

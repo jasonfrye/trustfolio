@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Models\WidgetSetting;
 use App\Models\Creator;
+use App\Models\WidgetSetting;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class WidgetSettingFactory extends Factory

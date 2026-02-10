@@ -4,10 +4,14 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
             <div>
                 <h1 class="text-2xl font-bold text-navy-900 tracking-tight">Welcome back, {{ $creator->display_name }}</h1>
-                <p class="mt-1 text-navy-500 text-sm">Here's what's happening with your reviews</p>
+                <p class="mt-1 text-navy-500 text-sm">Here's what's happening with your testimonials</p>
             </div>
             <div class="flex items-center gap-3">
-                <a href="{{ route('collection.show', $creator->collection_url) }}" target="_blank" class="btn-primary text-sm px-4 py-2">
+                <a href="{{ route('testimonial-requests.create') }}" class="btn-primary text-sm px-4 py-2">
+                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                    Request Testimonial
+                </a>
+                <a href="{{ route('collection.show', $creator->collection_url) }}" target="_blank" class="btn-ghost text-sm px-4 py-2">
                     <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                     Collection Page
                 </a>
@@ -21,12 +25,13 @@
         <!-- Collection URL Banner -->
         <div class="card-elevated p-5 mb-8 flex flex-col sm:flex-row sm:items-center gap-4 bg-gradient-to-r from-brand-50 to-white">
             <div class="flex-1 min-w-0">
-                <p class="text-xs font-semibold text-brand-700 uppercase tracking-wider mb-1">Your Review Link</p>
+                <p class="text-xs font-semibold text-brand-700 uppercase tracking-wider mb-1">Your Testimonial Collection Link</p>
                 <code class="text-sm text-navy-800 font-medium break-all">{{ route('collection.show', $creator->collection_url) }}</code>
             </div>
             <button
-                onclick="navigator.clipboard.writeText('{{ route('collection.show', $creator->collection_url) }}').then(() => { this.textContent = 'Copied!'; setTimeout(() => this.textContent = 'Copy Link', 2000) })"
+                onclick="copyCollectionLink()"
                 class="shrink-0 btn-primary text-sm px-4 py-2"
+                id="copy-link-btn"
             >
                 Copy Link
             </button>
@@ -36,7 +41,7 @@
         <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
             <div class="stat-card">
                 <div class="text-3xl font-bold text-navy-900">{{ $stats['total'] }}</div>
-                <div class="text-sm text-navy-500 mt-1">Total Reviews</div>
+                <div class="text-sm text-navy-500 mt-1">Total Testimonials</div>
             </div>
             <div class="stat-card border-l-4 border-l-amber-400">
                 <div class="text-3xl font-bold text-amber-600">{{ $stats['pending'] }}</div>
@@ -62,7 +67,7 @@
             <!-- Filter Tabs -->
             <div class="border-b border-navy-100 px-6 pt-5 pb-0">
                 <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-lg font-semibold text-navy-900">Reviews</h2>
+                    <h2 class="text-lg font-semibold text-navy-900">Testimonials</h2>
                 </div>
                 <div class="flex gap-1 -mb-px overflow-x-auto">
                     <a href="{{ route('dashboard') }}"
@@ -196,12 +201,64 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
             </div>
-            <h3 class="text-lg font-semibold text-navy-900 mb-1">No reviews yet</h3>
-            <p class="text-navy-500 text-sm mb-6">Share your collection link to start receiving reviews</p>
+            <h3 class="text-lg font-semibold text-navy-900 mb-1">No testimonials yet</h3>
+            <p class="text-navy-500 text-sm mb-6">Share your collection link to start receiving testimonials</p>
             <a href="{{ route('collection.show', $creator->collection_url) }}" target="_blank" class="btn-primary text-sm">
                 View Collection Page
             </a>
         </div>
         @endif
     </div>
+
+    <script>
+        function copyCollectionLink() {
+            const url = @json(route('collection.show', $creator->collection_url));
+            const btn = document.getElementById('copy-link-btn');
+            const originalText = btn.textContent;
+
+            // Try modern clipboard API first
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(url).then(() => {
+                    btn.textContent = 'Copied!';
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Clipboard API failed, trying fallback:', err);
+                    fallbackCopy(url, btn, originalText);
+                });
+            } else {
+                // Fallback for HTTP or older browsers
+                fallbackCopy(url, btn, originalText);
+            }
+        }
+
+        function fallbackCopy(text, btn, originalText) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    btn.textContent = 'Copied!';
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                    }, 2000);
+                } else {
+                    alert('Failed to copy. Please copy manually: ' + text);
+                }
+            } catch (err) {
+                console.error('Fallback copy failed:', err);
+                alert('Failed to copy. Please copy manually: ' + text);
+            }
+
+            document.body.removeChild(textArea);
+        }
+    </script>
 </x-app-layout>

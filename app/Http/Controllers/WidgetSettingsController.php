@@ -59,7 +59,7 @@ class WidgetSettingsController extends Controller
             'background_color' => ['nullable', 'string', 'regex:/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/'],
             'text_color' => ['nullable', 'string', 'regex:/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/'],
             'border_radius' => ['nullable', 'numeric'],
-            'layout' => ['required', 'string', 'in:cards,list,grid'],
+            'layout' => ['required', 'string', 'in:cards,list,grid,carousel,masonry,wall,single'],
             'limit' => ['required', 'integer', 'min:1', 'max:50'],
             'show_ratings' => ['nullable', 'boolean'],
             'show_avatars' => ['nullable', 'boolean'],
@@ -71,6 +71,13 @@ class WidgetSettingsController extends Controller
 
         $settings = WidgetSetting::where('creator_id', $creator->id)->firstOrFail();
         $hasPremium = $creator->hasPremiumSubscription();
+
+        // Restrict advanced layouts to Pro+ plans
+        if (WidgetSetting::layoutRequiresPro($validated['layout']) && ! $hasPremium) {
+            return back()->withErrors([
+                'layout' => 'Advanced layouts require a Pro or Business plan. Please upgrade to use this layout.',
+            ])->withInput();
+        }
 
         // Restrict custom branding to Pro+ plans
         if (! $hasPremium) {
@@ -151,6 +158,11 @@ class WidgetSettingsController extends Controller
     {
         $scriptUrl = route('widget.script', ['collectionUrl' => $creator->collection_url]);
         $fullUrl = url('/embed/'.$creator->collection_url);
+
+        // Add cache-busting version parameter based on settings updated_at
+        $settings = $creator->widgetSettings()->first();
+        $version = $settings ? $settings->updated_at->timestamp : time();
+        $fullUrl .= '?v='.$version;
 
         return <<<HTML
 <!-- ReviewBridge Widget -->
